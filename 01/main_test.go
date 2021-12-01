@@ -7,8 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCount(t *testing.T) {
-	lines := `
+var input = `
 199
 200
 208
@@ -20,9 +19,19 @@ func TestCount(t *testing.T) {
 260
 263
 `
-	lines = strings.Trim(lines, "\n")
+
+func TestCountIncreases(t *testing.T) {
+	lines := strings.Trim(input, "\n")
 	r := strings.NewReader(lines)
-	c, err := CountIncreases(r)
+	c, err := CountIncreasesReader(r)
 	assert.NoError(t, err)
 	assert.Equal(t, 7, c)
+}
+
+func TestCoundSlidingWindoes(t *testing.T) {
+	lines := strings.Trim(input, "\n")
+	r := strings.NewReader(lines)
+	c, err := CountIncreasesWindowedReader(r)
+	assert.NoError(t, err)
+	assert.Equal(t, 5, c)
 }

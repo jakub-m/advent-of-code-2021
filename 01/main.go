@@ -11,26 +11,70 @@ import (
 )
 
 func main() {
+	err := mainerr()
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func mainerr() error {
 	filename := os.Args[1]
 	f, err := os.Open(filename)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	defer f.Close()
 
-	c, err := CountIncreases(f)
+	//c, err := CountIncreasesReader(f)
+	c, err := CountIncreasesWindowedReader(f)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	fmt.Println(c)
+	return nil
 }
 
-func CountIncreases(r io.Reader) (int, error) {
+func CountIncreasesReader(r io.Reader) (int, error) {
 	values, err := ReadFileAsIntegers(r)
 	if err != nil {
 		return 0, nil
 	}
 
+	increases := CountIncreases(values)
+	return increases, nil
+}
+
+func CountIncreasesWindowedReader(r io.Reader) (int, error) {
+	values, err := ReadFileAsIntegers(r)
+	if err != nil {
+		return 0, nil
+	}
+
+	windowSums := []int{}
+
+	for i := range values {
+		j := i + 3
+		if j > len(values) {
+			break
+		}
+
+		window := values[i:j]
+		windowSums = append(windowSums, SumInt(window))
+	}
+
+	increses := CountIncreases(windowSums)
+	return increses, nil
+}
+
+func SumInt(values []int) int {
+	s := 0
+	for _, v := range values {
+		s += v
+	}
+	return s
+}
+
+func CountIncreases(values []int) int {
 	prev := values[0]
 	increases := 0
 	for _, val := range values[1:] {
@@ -39,7 +83,7 @@ func CountIncreases(r io.Reader) (int, error) {
 		}
 		prev = val
 	}
-	return increases, nil
+	return increases
 }
 
 func ReadFileAsIntegers(r io.Reader) ([]int, error) {
