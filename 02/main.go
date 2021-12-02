@@ -22,6 +22,55 @@ type Instruction struct {
 }
 
 func CalculatePosition(r io.Reader) (int, error) {
+	commands, err := parseLinesToCommands(r)
+	if err != nil {
+		return 0, err
+	}
+
+	horizontal, depth := 0, 0
+
+	for _, i := range commands {
+		c := i.(Instruction)
+		switch c.Command {
+		case Forward:
+			horizontal += c.Value
+		case Up:
+			depth -= c.Value
+		case Down:
+			depth += c.Value
+		default:
+			panic(c)
+		}
+	}
+	return horizontal * depth, nil
+}
+
+func CalculateAim(r io.Reader) (int, error) {
+	commands, err := parseLinesToCommands(r)
+	if err != nil {
+		return 0, err
+	}
+
+	horizontal, depth, aim := 0, 0, 0
+
+	for _, i := range commands {
+		c := i.(Instruction)
+		switch c.Command {
+		case Down:
+			aim += c.Value
+		case Up:
+			aim -= c.Value
+		case Forward:
+			horizontal += c.Value
+			depth += aim * c.Value
+		default:
+			panic(c)
+		}
+	}
+	return horizontal * depth, nil
+}
+
+func parseLinesToCommands(r io.Reader) ([]interface{}, error) {
 	parseLine := func(line string) (interface{}, error) {
 		sp := strings.Split(line, " ")
 		if len(sp) != 2 {
@@ -46,25 +95,5 @@ func CalculatePosition(r io.Reader) (int, error) {
 		return c, nil
 	}
 
-	commands, err := advent.ParseLinesReader(r, parseLine)
-	if err != nil {
-		return 0, nil
-	}
-
-	horizontal, depth := 0, 0
-
-	for _, i := range commands {
-		c := i.(Instruction)
-		switch c.Command {
-		case Forward:
-			horizontal += c.Value
-		case Up:
-			depth -= c.Value
-		case Down:
-			depth += c.Value
-		default:
-			panic(c)
-		}
-	}
-	return horizontal * depth, nil
+	return advent.ParseLinesReader(r, parseLine)
 }
