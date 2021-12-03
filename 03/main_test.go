@@ -82,13 +82,13 @@ func TestCalc2(t *testing.T) {
 
 func TestCalc1(t *testing.T) {
 	p := Calc(strings.NewReader(input))
-	assert.Equal(t, 198, p)
+	assert.Equal(t, 230, p)
 }
 
 func TestCalc(t *testing.T) {
 	r, err := os.Open("input")
 	assert.NoError(t, err)
 	p := Calc(r)
-	assert.Equal(t, 4174964, p)
+	assert.Equal(t, 4474944, p)
 
 }

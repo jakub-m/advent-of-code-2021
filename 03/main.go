@@ -8,38 +8,31 @@ import (
 	"strings"
 )
 
+type bitStats struct {
+	countsForOne map[int]int
+	nSamples     int
+	nBits        int
+}
+
 func Calc(r io.Reader) int {
-	lines, err := advent.ParseLinesReader(r, func(s string) (interface{}, error) {
+	rawLines, err := advent.ParseLinesReader(r, func(s string) (interface{}, error) {
 		s = strings.Trim(s, " \t\n")
 		return s, nil
 	})
 	advent.PanicErr(err)
-
-	countsForOne := make(map[int]int)
-	for _, line := range lines {
-		for i, c := range line.(string) {
-			switch c {
-			case '1':
-				countsForOne[i]++
-			case '0':
-				countsForOne[i] += 0 // set value
-			default:
-				panic(fmt.Sprintf("char: `%c`, line: `%s`", c, line))
-			}
-		}
+	lines := []string{}
+	for _, r := range rawLines {
+		lines = append(lines, r.(string))
 	}
 
-	nSamples := len(lines)
-	nBits := len(lines[0].(string))
-	// epsilonRate := 0
+	oxygenLines := make([]string, len(lines))
+	copy(oxygenLines, lines)
 
-	oxygenLines := []string{}
-	for _, line := range lines {
-		oxygenLines = append(oxygenLines, line.(string))
-	}
+	bitStats := countBitStats(lines)
 
-	for i := 0; i < nBits; i++ {
-		oxygenLines = filterOxygenLines(oxygenLines, countsForOne, nSamples, i)
+	for i := 0; i < bitStats.nBits; i++ {
+		bitStats = countBitStats(oxygenLines)
+		oxygenLines = filterOxygenLines(oxygenLines, bitStats, i)
 		fmt.Printf("%d: %+v\n", i, oxygenLines)
 		if len(oxygenLines) <= 1 {
 			break
@@ -48,7 +41,24 @@ func Calc(r io.Reader) int {
 
 	fmt.Println(oxygenLines)
 	advent.Assertf(len(oxygenLines) == 1, "%d", len(oxygenLines))
-	strconv.ParseInt(oxygenLines[0], 2, 32)
+	oxygenRate, err := strconv.ParseInt(oxygenLines[0], 2, 32)
+	advent.PanicErr(err)
+
+	scrubberLines := make([]string, len(lines))
+	copy(scrubberLines, lines)
+
+	for i := 0; i < bitStats.nBits; i++ {
+		bitStats = countBitStats(scrubberLines)
+		scrubberLines = filterScrubberLines(scrubberLines, bitStats, i)
+		fmt.Printf("%d: %+v\n", i, scrubberLines)
+		if len(scrubberLines) <= 1 {
+			break
+		}
+	}
+
+	fmt.Println(scrubberLines)
+	advent.Assertf(len(scrubberLines) == 1, "%d", len(scrubberLines))
+	scrubberRate, err := strconv.ParseInt(scrubberLines[0], 2, 32)
 	advent.PanicErr(err)
 
 	// // fmt.Printf("nBits=%d, nSamples=%d, %+v\n", nBits, nSamples, countsForOne)
@@ -64,17 +74,42 @@ func Calc(r io.Reader) int {
 	// }
 
 	// return oxygenRate * epsilonRate
-	return 0
+	return int(oxygenRate) * int(scrubberRate)
 }
 
-func filterOxygenLines(lines []string, countsForOne map[int]int, nSamples int, iBit int) []string {
-	cOne := countsForOne[iBit]
-	cZero := nSamples - cOne
+func filterOxygenLines(lines []string, bitStats bitStats, iBit int) []string {
+	cOne := bitStats.countsForOne[iBit]
+	cZero := bitStats.nSamples - cOne
 
 	filtered := []string{}
 	var popularBit int
-	if cOne >= cZero {
+	if cOne > cZero {
 		popularBit = 1
+	} else if cOne == cZero {
+		popularBit = 1
+	} else {
+		popularBit = 0
+	}
+
+	fmt.Printf("popular bit %d, cOne %d, cZero %d\n", popularBit, cOne, cZero)
+	for _, line := range lines {
+		if bit := getBitFromString(line, iBit); bit == popularBit {
+			filtered = append(filtered, line)
+		}
+	}
+	return filtered
+}
+
+func filterScrubberLines(lines []string, bitStats bitStats, iBit int) []string {
+	cOne := bitStats.countsForOne[iBit]
+	cZero := bitStats.nSamples - cOne
+
+	filtered := []string{}
+	var popularBit int
+	if cOne < cZero {
+		popularBit = 1
+	} else if cOne == cZero {
+		popularBit = 0
 	} else {
 		popularBit = 0
 	}
@@ -96,4 +131,28 @@ func getBitFromString(s string, i int) int {
 		return 1
 	}
 	panic(s)
+}
+
+func countBitStats(lines []string) bitStats {
+	countsForOne := make(map[int]int)
+	for _, line := range lines {
+		for i, c := range line {
+			switch c {
+			case '1':
+				countsForOne[i]++
+			case '0':
+				countsForOne[i] += 0 // set value
+			default:
+				panic(fmt.Sprintf("char: `%c`, line: `%s`", c, line))
+			}
+		}
+	}
+	nSamples := len(lines)
+	nBits := len(lines[0])
+
+	return bitStats{
+		countsForOne: countsForOne,
+		nSamples:     nSamples,
+		nBits:        nBits,
+	}
 }
