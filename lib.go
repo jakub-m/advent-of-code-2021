@@ -35,7 +35,7 @@ func PanicErr(err error) {
 	}
 }
 
-func Assert(cond bool, format string, args ...interface{}) {
+func Assertf(cond bool, format string, args ...interface{}) {
 	if !cond {
 		panic(fmt.Sprintf(format, args...))
 	}
