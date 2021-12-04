@@ -14,7 +14,7 @@ const (
 
 type bingoInput struct {
 	numbers []int
-	boards  []board
+	boards  []*board
 }
 
 type board struct {
@@ -38,14 +38,19 @@ func (b board) sumUnmarked() int {
 	return sum
 }
 
-func (b board) mark(val int) {
-	for _, row := range b.fields {
-		for _, f := range row {
+func (b *board) mark(val int) {
+	for i, row := range b.fields {
+		for j, f := range row {
 			if f.val == val {
-				f.marked = true
+				// fmt.Printf("marked! %d\n", val)
+				// fmt.Printf("%v\n", b.fields[i][j].marked)
+				b.fields[i][j].marked = true
+				// fmt.Printf("%v\n", b.fields[i][j].marked)
+				// row[j] = field{val: f.val, marked: true}
 			}
 		}
 	}
+	fmt.Println(b)
 }
 
 func (b board) isWinner() bool {
@@ -74,11 +79,27 @@ func (b board) isWinner() bool {
 	return false
 }
 
+func (b board) String() string {
+	rows := []string{}
+	for iRow := 0; iRow < height; iRow++ {
+		row := ""
+		for iCol := 0; iCol < width; iCol++ {
+			f := b.fields[iRow][iCol]
+			m := " "
+			if f.marked {
+				m = "*"
+			}
+			row = row + fmt.Sprintf("%.2d%s ", f.val, m)
+		}
+		rows = append(rows, row)
+	}
+	return strings.Join(rows, "\n")
+}
+
 func GetBingoScore(r io.Reader) int {
 	bingoInput, err := loadBingoInput(r)
 	advent.PanicErr(err)
 
-	fmt.Println(bingoInput.numbers)
 	winner, lastNumber, ok := findWinner(bingoInput.boards, bingoInput.numbers)
 	advent.Assertf(ok, "no winner")
 	return lastNumber * winner.sumUnmarked()
@@ -103,15 +124,15 @@ func loadBingoInput(r io.Reader) (bingoInput, error) {
 	return bingoInput{boards: boards, numbers: numbers}, nil
 }
 
-func readBoards(lines []string) ([]board, error) {
-	boards := []board{}
+func readBoards(lines []string) ([]*board, error) {
+	boards := []*board{}
 	lines = advent.TrimNextEmptyLines(lines)
 	for len(lines) > 0 {
 		board, err := readBoard(lines[:5])
 		if err != nil {
 			return nil, err
 		}
-		boards = append(boards, board)
+		boards = append(boards, &board)
 		lines = lines[5:]
 		lines = advent.TrimNextEmptyLines(lines)
 	}
@@ -137,16 +158,17 @@ func readBoard(lines []string) (board, error) {
 	return b, nil
 }
 
-func findWinner(boards []board, numbers []int) (board, int, bool) {
+func findWinner(boards []*board, numbers []int) (*board, int, bool) {
 	for _, num := range numbers {
 		for _, board := range boards {
 			board.mark(num)
+			// fmt.Printf("now\n%s\n\n", board)
 			if board.isWinner() {
 				return board, num, true
 			}
 		}
 	}
-	return board{}, 0, false
+	return nil, 0, false
 }
 
 func squashSpaces(s string) string {
