@@ -100,7 +100,7 @@ func GetBingoScore(r io.Reader) int {
 	bingoInput, err := loadBingoInput(r)
 	advent.PanicErr(err)
 
-	winner, lastNumber, ok := findWinner(bingoInput.boards, bingoInput.numbers)
+	winner, lastNumber, ok := findLastWinner(bingoInput.boards, bingoInput.numbers)
 	advent.Assertf(ok, "no winner")
 	return lastNumber * winner.sumUnmarked()
 }
@@ -158,7 +158,27 @@ func readBoard(lines []string) (board, error) {
 	return b, nil
 }
 
-func findWinner(boards []*board, numbers []int) (*board, int, bool) {
+func findLastWinner(boards []*board, numbers []int) (*board, int, bool) {
+	for len(boards) > 0 {
+		winner, lastNum, ok := findFirstWinner(boards, numbers)
+		if len(boards) == 1 {
+			return winner, lastNum, ok
+		}
+		if !ok {
+			return nil, 0, false
+		}
+		loosingBoards := []*board{}
+		for _, b := range boards {
+			if b != winner {
+				loosingBoards = append(loosingBoards, b)
+			}
+		}
+		boards = loosingBoards
+	}
+	return nil, 0, false
+}
+
+func findFirstWinner(boards []*board, numbers []int) (*board, int, bool) {
 	for _, num := range numbers {
 		for _, board := range boards {
 			board.mark(num)
