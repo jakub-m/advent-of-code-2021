@@ -50,7 +50,7 @@ func (b *board) mark(val int) {
 			}
 		}
 	}
-	fmt.Println(b)
+	// fmt.Println(b)
 }
 
 func (b board) isWinner() bool {
