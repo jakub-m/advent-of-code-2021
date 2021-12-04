@@ -1,7 +1,6 @@
 package main
 
 import (
-	"advent"
 	"os"
 	"testing"
 
@@ -11,5 +10,6 @@ import (
 func Test1(t *testing.T) {
 	r, err := os.Open("input1")
 	assert.NoError(t, err)
-	advent.ReadLinesTrim(r)
+	score := GetBingoScore(r)
+	assert.Equal(t, 4512, score)
 }

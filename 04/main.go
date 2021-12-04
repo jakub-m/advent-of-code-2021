@@ -2,7 +2,9 @@ package main
 
 import (
 	"advent"
+	"fmt"
 	"io"
+	"strings"
 )
 
 const (
@@ -22,6 +24,54 @@ type board struct {
 type field struct {
 	val    int
 	marked bool
+}
+
+func (b board) sumUnmarked() int {
+	sum := 0
+	for _, row := range b.fields {
+		for _, f := range row {
+			if !f.marked {
+				sum += f.val
+			}
+		}
+	}
+	return sum
+}
+
+func (b board) mark(val int) {
+	for _, row := range b.fields {
+		for _, f := range row {
+			if f.val == val {
+				f.marked = true
+			}
+		}
+	}
+}
+
+func (b board) isWinner() bool {
+	for iRow := 0; iRow < height; iRow++ {
+		wins := true
+		for iCol := 0; iCol < width; iCol++ {
+			f := b.fields[iRow][iCol]
+			wins = wins && f.marked
+		}
+		if wins {
+			return true
+		}
+	}
+
+	for iCol := 0; iCol < height; iCol++ {
+		wins := true
+		for iRow := 0; iRow < width; iRow++ {
+			f := b.fields[iRow][iCol]
+			wins = wins && f.marked
+		}
+		if wins {
+			return true
+		}
+	}
+
+	return false
 }
 
 func GetBingoScore(r io.Reader) int {
@@ -65,8 +115,44 @@ func readBoards(lines []string) ([]board, error) {
 		lines = advent.TrimNextEmptyLines(lines)
 	}
 
+	return boards, nil
+}
+
+func readBoard(lines []string) (board, error) {
+	null := board{}
+	b := board{}
+	if len(lines) != 5 {
+		return null, fmt.Errorf("too much lines %d", len(lines))
+	}
+	for iRow, line := range lines {
+		numbers, err := advent.ReadIntsFromStringSep(squashSpaces(line), " ")
+		if err != nil {
+			return null, err
+		}
+		for iCol, num := range numbers {
+			b.fields[iRow][iCol] = field{num, false}
+		}
+	}
+	return b, nil
 }
 
 func findWinner(boards []board, numbers []int) (board, int, bool) {
+	for _, num := range numbers {
+		for _, board := range boards {
+			board.mark(num)
+			if board.isWinner() {
+				return board, num, true
+			}
 
+		}
+
+	}
+
+	return board{}, 0, false
+}
+
+func squashSpaces(s string) string {
+	s = strings.ReplaceAll(s, "   ", " ")
+	s = strings.ReplaceAll(s, "  ", " ")
+	return s
 }
