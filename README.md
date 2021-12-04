@@ -2,8 +2,8 @@ Lessons learned
 
 Where Go shines:
 
-Typing system allows writing everything in a single pass, with quite high
-confidence that it will just work.
+- Typing system allows writing everything in a single pass, with quite high
+  confidence that it will just work.
 
 Where Go fails:
 
