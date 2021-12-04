@@ -78,6 +78,7 @@ func GetBingoScore(r io.Reader) int {
 	bingoInput, err := loadBingoInput(r)
 	advent.PanicErr(err)
 
+	fmt.Println(bingoInput.numbers)
 	winner, lastNumber, ok := findWinner(bingoInput.boards, bingoInput.numbers)
 	advent.Assertf(ok, "no winner")
 	return lastNumber * winner.sumUnmarked()
@@ -143,11 +144,8 @@ func findWinner(boards []board, numbers []int) (board, int, bool) {
 			if board.isWinner() {
 				return board, num, true
 			}
-
 		}
-
 	}
-
 	return board{}, 0, false
 }
 
