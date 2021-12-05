@@ -12,7 +12,7 @@ func Test1(t *testing.T) {
 	assert.NoError(t, err)
 	v, err := CalcVents(r)
 	assert.NoError(t, err)
-	assert.Equal(t, 5, v)
+	assert.Equal(t, 12, v)
 }
 
 func Test2(t *testing.T) {
@@ -20,5 +20,5 @@ func Test2(t *testing.T) {
 	assert.NoError(t, err)
 	v, err := CalcVents(r)
 	assert.NoError(t, err)
-	assert.Equal(t, 6564, v)
+	assert.Equal(t, 19172, v)
 }

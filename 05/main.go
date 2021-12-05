@@ -31,9 +31,9 @@ func CalcVents(r io.Reader) (int, error) {
 		return 0, err
 	}
 	for _, line := range lines {
-		if !(line.isHorizontal() || line.isVertical()) {
-			continue
-		}
+		// if !(line.isHorizontal() || line.isVertical()) {
+		// 	continue
+		// }
 		// fmt.Println(line)
 		line.iterPoints(func(p point) {
 			// fmt.Println(p)
