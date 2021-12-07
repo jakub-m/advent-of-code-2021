@@ -1,6 +1,8 @@
 package main
 
-import "advent"
+import (
+	"advent"
+)
 
 func Calc(input string) (int, error) {
 	initialPositions, err := advent.ReadIntsFromStringSep(input, ",")
@@ -24,7 +26,8 @@ func Calc(input string) (int, error) {
 func calcMoveCost(positions []int, targetPos int) int {
 	cost := 0
 	for _, pos := range positions {
-		cost += advent.AbsInt(pos - targetPos)
+		n := advent.AbsInt(pos - targetPos)
+		cost += (1 + n) * n / 2
 	}
 	return cost
 }
