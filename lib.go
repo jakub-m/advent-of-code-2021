@@ -58,6 +58,34 @@ func ReadIntsFromStringSep(input string, sep string) ([]int, error) {
 	return values, nil
 }
 
+func MinInt(ints []int) int {
+	min := ints[0]
+	for _, n := range ints {
+		if n < min {
+			min = n
+		}
+	}
+	return min
+}
+
+func MaxInt(ints []int) int {
+	max := ints[0]
+	for _, n := range ints {
+		if n > max {
+			max = n
+		}
+	}
+	return max
+}
+
+func AbsInt(n int) int {
+	if n >= 0 {
+		return n
+	} else {
+		return -1 * n
+	}
+}
+
 func TrimNextEmptyLines(lines []string) []string {
 	for i, line := range lines {
 		line = strings.Trim(line, " \n\t")
