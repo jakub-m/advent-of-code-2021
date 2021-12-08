@@ -108,7 +108,10 @@ func decodeDigitsFromSegments(allDigits []segment) digitEncoding {
 	})
 
 	d6 := selectOnly(allDigits, func(s segment) bool {
-		return len(s) == 6 && s.subCount(d3) == 1
+		return len(s) == 6 &&
+			s.subCount(d3) == 2 &&
+			d3.subCount(s) == 1 &&
+			d1.subCount(s) == 1
 	})
 
 	d5 := selectOnly(allDigits, func(s segment) bool {
