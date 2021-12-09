@@ -27,15 +27,17 @@ func Calc(r io.Reader) (int, error) {
 				return 0, err
 			}
 			c := coord{iCol, iRow}
-			fmt.Printf("%v=%d\n", c, height)
+			// fmt.Printf("%v=%d\n", c, height)
 			landscape[c] = height
 		}
 	}
 
 	score := 0
 	for coord, height := range landscape {
-		heights := landscape.getMany(landscape.getNeighbors(coord))
-		if height == advent.MinInt(heights) {
+		neighbors := landscape.getNeighbors(coord)
+		heights := landscape.getMany(neighbors)
+		// fmt.Printf("%v , %v, %v\n", coord, neighbors, heights)
+		if height < advent.MinInt(heights) {
 			score += height + 1
 		}
 	}
@@ -59,10 +61,10 @@ func (d landscape) getNeighbors(c coord) []coord {
 	neighbors := []coord{}
 
 	for _, c := range []coord{
-		{x: c.x + 1, y: c.y + 1},
-		{x: c.x - 1, y: c.y + 1},
-		{x: c.x + 1, y: c.y - 1},
-		{x: c.x - 1, y: c.y - 1},
+		{x: c.x + 1, y: c.y},
+		{x: c.x - 1, y: c.y},
+		{x: c.x, y: c.y + 1},
+		{x: c.x, y: c.y - 1},
 	} {
 		if _, ok := d[c]; ok {
 			neighbors = append(neighbors, c)

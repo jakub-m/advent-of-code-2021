@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	"strings"
 	"testing"
 
@@ -17,4 +18,12 @@ func TestCalc1(t *testing.T) {
 	v, err := Calc(strings.NewReader(input1))
 	assert.NoError(t, err)
 	assert.Equal(t, 15, v)
+}
+
+func TestCalc2(t *testing.T) {
+	f, err := os.Open("input2")
+	assert.NoError(t, err)
+	v, err := Calc(f)
+	assert.NoError(t, err)
+	assert.Equal(t, 566, v)
 }
