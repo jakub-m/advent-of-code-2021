@@ -17,7 +17,7 @@ var input1 = `2199943210
 func TestCalc1(t *testing.T) {
 	v, err := Calc(strings.NewReader(input1))
 	assert.NoError(t, err)
-	assert.Equal(t, 15, v)
+	assert.Equal(t, 3*9*14*9, v)
 }
 
 func TestCalc2(t *testing.T) {
