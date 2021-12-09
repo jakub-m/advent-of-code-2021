@@ -31,6 +31,7 @@ func Calc(r io.Reader) (int, error) {
 			landscape[c] = height
 		}
 	}
+	fmt.Printf("%+v\n", landscape)
 
 	// score := 0
 	// for coord, height := range landscape {
