@@ -4,6 +4,7 @@ import (
 	"advent"
 	"fmt"
 	"io"
+	"sort"
 	"strconv"
 )
 
@@ -31,7 +32,6 @@ func Calc(r io.Reader) (int, error) {
 			landscape[c] = height
 		}
 	}
-	fmt.Printf("%+v\n", landscape)
 
 	// score := 0
 	// for coord, height := range landscape {
@@ -70,6 +70,7 @@ func Calc(r io.Reader) (int, error) {
 		if _, ok := basinAnnotations[coord]; height == 9 || ok {
 			continue
 		}
+		// fmt.Printf("%+v %d\n", coord, currBasinNumber)
 
 		currBasinNumber++
 		fillBasinRec(coord, currBasinNumber)
@@ -83,11 +84,15 @@ func Calc(r io.Reader) (int, error) {
 	// fmt.Printf("%+v\n", basinSize)
 	// fmt.Printf("%+v\n", basinAnnotations)
 
-	score := 1
+	sizeSlice := []int{}
+
 	for _, v := range basinSize {
-		score *= v
+		sizeSlice = append(sizeSlice, v)
 	}
 
+	sort.Slice(sizeSlice, func(i, j int) bool { return sizeSlice[i] > sizeSlice[j] })
+
+	score := sizeSlice[0] * sizeSlice[1] * sizeSlice[2]
 	return score, nil
 }
 
