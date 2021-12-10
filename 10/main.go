@@ -12,16 +12,21 @@ func Calc(r io.Reader) (int, error) {
 		return 0, err
 	}
 
-	score := 0
+	scores := []int{}
 	for _, line := range lines {
-		s := getScoreForLine(line)
-		fmt.Printf("score %d, line %s\n", s, line)
-		score += s
+		s, missingClosure := getScoreIfLineCorrupted(line)
+		if s != 0 {
+			continue
+		}
+		s2 := scoreForMissingClosure(missingClosure)
+		scores = append(scores, s2)
+		fmt.Printf("score %d, line %s + %s\n", s2, line, runesAsString(missingClosure))
 	}
+	score := advent.MedianInt(scores)
 	return score, nil
 }
 
-func getScoreForLine(line string) int {
+func getScoreIfLineCorrupted(line string) (int, []rune) {
 	expectedClosing := []rune{}
 
 	for _, c := range line {
@@ -40,12 +45,22 @@ func getScoreForLine(line string) int {
 			} else {
 				//fmt.Printf("mismatch expected %c\n", expected)
 				//return characterMeta[expected].score
-				return meta.score
+				return meta.score, []rune{}
 			}
 		}
 	}
-	return 0 // incomplete, return 0
-	//panic(fmt.Sprintf("no score for: %s", line))
+	return 0, expectedClosing
+}
+
+func scoreForMissingClosure(chars []rune) int {
+	score := 0
+	for _, c := range chars {
+		comp := characterMeta[c].complementary
+		sc := characterMeta[comp].score
+		score = score*5 + sc
+		fmt.Printf("%s %c %d %d\n", runesAsString(chars), c, sc, score)
+	}
+	return score
 }
 
 var characterMeta map[rune]meta
@@ -58,10 +73,10 @@ type meta struct {
 
 func init() {
 	characterMeta = make(map[rune]meta)
-	characterMeta['('] = meta{')', 0, true}
-	characterMeta['['] = meta{']', 0, true}
-	characterMeta['{'] = meta{'}', 0, true}
-	characterMeta['<'] = meta{'>', 0, true}
+	characterMeta['('] = meta{')', 1, true}
+	characterMeta['['] = meta{']', 2, true}
+	characterMeta['{'] = meta{'}', 3, true}
+	characterMeta['<'] = meta{'>', 4, true}
 	characterMeta[')'] = meta{'(', 3, false}
 	characterMeta[']'] = meta{'[', 57, false}
 	characterMeta['}'] = meta{'{', 1197, false}

@@ -40,7 +40,7 @@ func TestCalc2(t *testing.T) {
 	assert.NoError(t, err)
 	v, err := Calc(f)
 	assert.NoError(t, err)
-	assert.Equal(t, 26397, v)
+	assert.Equal(t, 288957, v)
 }
 
 func TestCalc3(t *testing.T) {
@@ -48,5 +48,5 @@ func TestCalc3(t *testing.T) {
 	assert.NoError(t, err)
 	v, err := Calc(f)
 	assert.NoError(t, err)
-	assert.Equal(t, 341823, v)
+	assert.Equal(t, 2801302861, v)
 }

@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -94,6 +95,15 @@ func TrimNextEmptyLines(lines []string) []string {
 		}
 	}
 	return []string{}
+}
+
+func MedianInt(values []int) int {
+	copied := make([]int, len(values))
+	copy(copied, values)
+	sort.Slice(copied, func(i, j int) bool { return copied[i] < copied[j] })
+	n := len(copied)
+	Assertf(n%2 == 1, "n is even %d", n)
+	return copied[n/2]
 }
 
 func PanicErr(err error) {
