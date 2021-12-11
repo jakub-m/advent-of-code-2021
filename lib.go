@@ -117,3 +117,79 @@ func Assertf(cond bool, format string, args ...interface{}) {
 		panic(fmt.Sprintf(format, args...))
 	}
 }
+
+type Pos struct {
+	x, y int
+}
+
+type GridInt map[Pos]int
+
+func LoadGrid(r io.Reader) (GridInt, error) {
+	lines, err := ReadLinesTrim(r)
+	if err != nil {
+		return nil, err
+	}
+
+	landscape := make(GridInt)
+	for iRow, row := range lines {
+		for iCol, char := range row {
+			val, err := strconv.Atoi(fmt.Sprintf("%c", char))
+			if err != nil {
+				return nil, err
+			}
+			c := Pos{iCol, iRow}
+			landscape[c] = val
+		}
+	}
+
+	return landscape, nil
+}
+
+func (d GridInt) GetMany(coords []Pos) []int {
+	values := []int{}
+	for _, c := range coords {
+		if val, ok := d[c]; ok {
+			values = append(values, val)
+		} else {
+			panic(fmt.Sprintf("No such coord: %+v", c))
+		}
+	}
+	return values
+}
+
+func (d GridInt) GetNeighbors4(c Pos) []Pos {
+	neighbors := []Pos{}
+
+	for _, c := range []Pos{
+		{x: c.x + 1, y: c.y},
+		{x: c.x - 1, y: c.y},
+		{x: c.x, y: c.y + 1},
+		{x: c.x, y: c.y - 1},
+	} {
+		if _, ok := d[c]; ok {
+			neighbors = append(neighbors, c)
+		}
+	}
+	return neighbors
+}
+
+func (d GridInt) GetNeighbors8(c Pos) []Pos {
+	neighbors := []Pos{}
+
+	for _, c := range []Pos{
+		{x: c.x + 1, y: c.y},
+		{x: c.x - 1, y: c.y},
+		{x: c.x, y: c.y + 1},
+		{x: c.x, y: c.y - 1},
+
+		{x: c.x - 1, y: c.y - 1},
+		{x: c.x + 1, y: c.y - 1},
+		{x: c.x - 1, y: c.y + 1},
+		{x: c.x + 1, y: c.y + 1},
+	} {
+		if _, ok := d[c]; ok {
+			neighbors = append(neighbors, c)
+		}
+	}
+	return neighbors
+}
