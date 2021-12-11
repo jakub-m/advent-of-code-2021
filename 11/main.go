@@ -2,21 +2,24 @@ package main
 
 import (
 	"advent"
+	"fmt"
 	"io"
 )
 
-func Calc(r io.Reader, nSteps int) (int, error) {
+func Calc(r io.Reader) (int, error) {
 	grid, err := advent.LoadGrid(r)
 	if err != nil {
 		return 0, err
 	}
 
-	flashCount := 0
-	for i := 0; i < nSteps+1; i++ {
-		flashCount += flashGrid(grid)
+	for i := 0; i < 1000; i++ {
+		flashCount := flashGrid(grid)
+		if flashCount == len(grid) {
+			return i, nil
+		}
 	}
 
-	return flashCount, nil
+	return 0, fmt.Errorf("no solution")
 }
 
 func flashGrid(grid advent.GridInt) int {
