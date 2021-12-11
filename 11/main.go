@@ -12,7 +12,7 @@ func Calc(r io.Reader, nSteps int) (int, error) {
 	}
 
 	flashCount := 0
-	for i := 0; i < nSteps; i++ {
+	for i := 0; i < nSteps+1; i++ {
 		flashCount += flashGrid(grid)
 	}
 
@@ -39,6 +39,9 @@ func flashGrid(grid advent.GridInt) int {
 		} else {
 			return
 		}
+	}
+	for p := range grid {
+		flashRec(p)
 	}
 
 	flashCount := 0
