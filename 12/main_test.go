@@ -18,7 +18,7 @@ b-end`
 func TestCalc1(t *testing.T) {
 	v, err := Calc(strings.NewReader(input1))
 	assert.NoError(t, err)
-	assert.Equal(t, 10, v)
+	assert.Equal(t, 36, v)
 }
 
 var input2 = `dc-end
@@ -35,7 +35,7 @@ kj-dc`
 func TestCalc2(t *testing.T) {
 	v, err := Calc(strings.NewReader(input2))
 	assert.NoError(t, err)
-	assert.Equal(t, 19, v)
+	assert.Equal(t, 103, v)
 }
 
 var input3 = `fs-end
@@ -60,7 +60,7 @@ start-RW`
 func TestCalc3(t *testing.T) {
 	v, err := Calc(strings.NewReader(input3))
 	assert.NoError(t, err)
-	assert.Equal(t, 226, v)
+	assert.Equal(t, 3509, v)
 }
 
 var input4 = `vp-BY
@@ -92,5 +92,5 @@ UH-kk`
 func TestCalc4(t *testing.T) {
 	v, err := Calc(strings.NewReader(input4))
 	assert.NoError(t, err)
-	assert.Equal(t, 4754, v)
+	assert.Equal(t, 143562, v)
 }

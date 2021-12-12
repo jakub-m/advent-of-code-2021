@@ -18,35 +18,36 @@ func Calc(r io.Reader) (int, error) {
 	}
 	graph := loadGraphFromLines(lines)
 
-	var traverseRec func(string, map[string]bool) int
+	var traverseRec func(string, map[string]int, []string) int
 
-	traverseRec = func(node string, visited map[string]bool) int {
-		//fmt.Printf("rec %s -> %v\n", node, graph[node])
-		if visited[node] {
+	traverseRec = func(node string, visitCount map[string]int, path []string) int {
+		// fmt.Printf("rec %s -> %v\n", node, graph[node])
+		limit, hasLimit := visitLimit(node, visitCount)
+		if hasLimit && visitCount[node] >= limit {
 			return 0
 		}
 
 		if node == end {
+			// path = append(path, end)
+			// fmt.Printf("END %s\n", strings.Join(path, ","))
 			return 1
 		}
 
-		visitOnce := strings.ToLower(node) == node
-
-		if visitOnce {
-			visited[node] = true
+		if hasLimit {
+			visitCount[node]++
 		}
 
 		c := 0
 		for _, neigh := range graph[node] {
-			c += traverseRec(neigh, visited)
+			c += traverseRec(neigh, visitCount, append(path, node))
 		}
-		if visitOnce {
-			visited[node] = false
+		if hasLimit {
+			visitCount[node]--
 		}
 		return c
 	}
-	visited := make(map[string]bool)
-	return traverseRec(start, visited), nil
+	visitCount := make(map[string]int)
+	return traverseRec(start, visitCount, []string{}), nil
 }
 
 type graph map[string][]string
@@ -76,4 +77,34 @@ func loadGraphFromLines(lines []string) graph {
 	}
 
 	return graph
+}
+
+func visitLimit(node string, visitCount map[string]int) (limit int, hasLimit bool) {
+	if strings.ToUpper(node) == node {
+		return 0, false
+	}
+
+	if node == start || node == end {
+		return 1, true
+	}
+
+	for _, c := range visitCount {
+		if c == 2 {
+			return 1, true
+		}
+	}
+
+	return 2, true
+
+	//return 1, true
+
+	// if len(node) == 1 {
+	// 	return 1, true
+	// }
+
+	// if len(node) == 2 {
+	// 	return 2, true
+	// }
+
+	// panic(fmt.Sprintf("visitLimit %s", node))
 }
