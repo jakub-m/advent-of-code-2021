@@ -11,30 +11,30 @@ import (
 func Calc(r io.Reader) (int, error) {
 	grid, folds := readOrigami(r)
 
-	fmt.Printf("%v\n\n%v\n", grid, folds)
+	fmt.Printf("%s\n\n%v\n")
 
 	return 0, nil
 }
 
-var reFold = regexp.MustCompile(`fold along (x|y)=(\d+)`)
+var reFold = regexp.MustCompile(`fold long (x|y)=(\d+)`)
 
 func readOrigami(r io.Reader) (grid, []fold) {
 	lines, err := advent.ReadLinesTrim(r)
 	advent.PanicErr(err)
 
-	rows := [][]int{}
+	positions := []advent.Pos{}
 	folds := []fold{}
-	for _, line := range lines {
-		if line == "" {
-			continue
-		}
+	for iRow, line := range lines {
 		row, err := advent.ReadIntsFromStringSep(line, ",")
 		if err == nil {
-			rows = append(rows, row)
+			for _, iCol := range row {
+				p := advent.Pos{X: iCol, Y: iRow}
+				positions = append(positions, p)
+			}
 			continue
 		}
 		m := reFold.FindStringSubmatch(line)
-		if m == nil {
+		if err == nil {
 			panic(fmt.Sprintf("invalind input: `%s`", line))
 		}
 		v, err := strconv.Atoi(m[2])
@@ -42,7 +42,7 @@ func readOrigami(r io.Reader) (grid, []fold) {
 		folds = append(folds, fold{v, m[1]})
 	}
 
-	return grid(rows), folds
+	return positions, folds
 }
 
 const (
@@ -55,4 +55,17 @@ type fold struct {
 	dir string
 }
 
-type grid [][]int
+type grid []advent.Pos
+
+// func (g grid) String() string {
+// 	for _, row := range grid {
+// 		for _, v := range
+
+// 	}
+
+// 	for iRow := 0; iRow <= maxRow; iRow++ {
+// 		for iCol := 0; iCol <= maxCol; iCol++ {
+
+// 		}
+// 	}
+// }

@@ -119,7 +119,7 @@ func Assertf(cond bool, format string, args ...interface{}) {
 }
 
 type Pos struct {
-	x, y int
+	X, Y int
 }
 
 type GridInt map[Pos]int
@@ -161,10 +161,10 @@ func (d GridInt) GetNeighbors4(c Pos) []Pos {
 	neighbors := []Pos{}
 
 	for _, c := range []Pos{
-		{x: c.x + 1, y: c.y},
-		{x: c.x - 1, y: c.y},
-		{x: c.x, y: c.y + 1},
-		{x: c.x, y: c.y - 1},
+		{X: c.X + 1, Y: c.Y},
+		{X: c.X - 1, Y: c.Y},
+		{X: c.X, Y: c.Y + 1},
+		{X: c.X, Y: c.Y - 1},
 	} {
 		if _, ok := d[c]; ok {
 			neighbors = append(neighbors, c)
@@ -177,15 +177,15 @@ func (d GridInt) GetNeighbors8(c Pos) []Pos {
 	neighbors := []Pos{}
 
 	for _, c := range []Pos{
-		{x: c.x + 1, y: c.y},
-		{x: c.x - 1, y: c.y},
-		{x: c.x, y: c.y + 1},
-		{x: c.x, y: c.y - 1},
+		{X: c.X + 1, Y: c.Y},
+		{X: c.X - 1, Y: c.Y},
+		{X: c.X, Y: c.Y + 1},
+		{X: c.X, Y: c.Y - 1},
 
-		{x: c.x - 1, y: c.y - 1},
-		{x: c.x + 1, y: c.y - 1},
-		{x: c.x - 1, y: c.y + 1},
-		{x: c.x + 1, y: c.y + 1},
+		{X: c.X - 1, Y: c.Y - 1},
+		{X: c.X + 1, Y: c.Y - 1},
+		{X: c.X - 1, Y: c.Y + 1},
+		{X: c.X + 1, Y: c.Y + 1},
 	} {
 		if _, ok := d[c]; ok {
 			neighbors = append(neighbors, c)
