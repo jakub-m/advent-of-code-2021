@@ -12,5 +12,5 @@ func TestCalc1(t *testing.T) {
 	assert.NoError(t, err)
 	v, err := Calc(f)
 	assert.NoError(t, err)
-	assert.Equal(t, 1, v)
+	assert.Equal(t, "something", v)
 }

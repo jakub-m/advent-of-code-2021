@@ -9,12 +9,37 @@ import (
 	"strconv"
 )
 
-func Calc(r io.Reader) (int, error) {
-	grid, folds := readOrigami(r)
+func Calc(r io.Reader) (string, error) {
+	g, folds := readOrigami(r)
 
-	fmt.Printf("%s\n\n%v\n", grid, folds)
+	for _, fold := range folds {
+		newGrid := grid{}
+		if fold.dir == foldDirX {
+			for _, p := range g {
+				x := p.x
+				if x > fold.pos {
+					x = fold.pos - (x - fold.pos)
+				}
+				q := pos{x: x, y: p.y}
+				newGrid = append(newGrid, q)
+			}
 
-	return 0, nil
+		} else if fold.dir == foldDirY {
+			for _, p := range g {
+				y := p.y
+				if y > fold.pos {
+					y = fold.pos - (y - fold.pos)
+				}
+				q := pos{x: p.x, y: y}
+				newGrid = append(newGrid, q)
+			}
+		} else {
+			panic(fmt.Sprintf("fold %v", fold))
+		}
+		g = newGrid
+	}
+
+	return g.String(), nil
 }
 
 var reFold = regexp.MustCompile(`fold along (x|y)=(\d+)`)
