@@ -12,7 +12,11 @@ import (
 func Calc(r io.Reader) (string, error) {
 	g, folds := readOrigami(r)
 
-	for _, fold := range folds {
+	for i, fold := range folds {
+		if i == 1 {
+			fmt.Printf("number of dots: %d: %d\n", i, len(g))
+		}
+		// fmt.Printf("fold:\n%s\n\n", g)
 		newGrid := grid{}
 		if fold.dir == foldDirX {
 			for _, p := range g {
