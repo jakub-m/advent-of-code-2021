@@ -70,6 +70,7 @@ func MinInt(ints []int) int {
 }
 
 func MaxInt(ints []int) int {
+	Assertf(len(ints) > 0, "MaxInt: length of the input is 0")
 	max := ints[0]
 	for _, n := range ints {
 		if n > max {
