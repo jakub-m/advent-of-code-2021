@@ -40,7 +40,7 @@ func Calc(r io.Reader) (string, error) {
 		} else {
 			panic(fmt.Sprintf("fold %v", fold))
 		}
-		g = newGrid
+		g = uniqPos(newGrid)
 	}
 
 	return g.String(), nil
@@ -135,4 +135,16 @@ func (g grid) String() string {
 		s += "\n"
 	}
 	return s
+}
+
+func uniqPos(positions []pos) []pos {
+	m := make(map[pos]bool)
+	for _, p := range positions {
+		m[p] = true
+	}
+	newPos := []pos{}
+	for p := range m {
+		newPos = append(newPos, p)
+	}
+	return newPos
 }
