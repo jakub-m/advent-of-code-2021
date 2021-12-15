@@ -16,9 +16,9 @@ func TestCalc1(t *testing.T) {
 }
 
 func TestCalc2(t *testing.T) {
-	f, err := os.Open("input2")
+	f, err := os.Open("input1")
 	assert.NoError(t, err)
-	v, err := Calc(f, 10)
+	v, err := Calc(f, 40)
 	assert.NoError(t, err)
 	assert.Equal(t, 1588, v)
 }
