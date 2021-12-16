@@ -17,46 +17,44 @@ func Calc(rawHex string) (int, error) {
 	p, _ := decodePacketRawBin(bin)
 	advent.Printf("%v", p)
 
-	var sumVerRec func(p packet) int
+	// var sumVerRec func(p packet) int
 
-	sumVerRec = func(p packet) int {
-		switch p := p.(type) {
-		case literalPacket:
-			return p.getVersion()
-		case operatorPacket:
-			v := p.version
-			for _, ch := range p.packets {
-				v += sumVerRec(ch)
-			}
-			return v
-		default:
-			panic(p)
-		}
-	}
+	// sumVerRec = func(p packet) int {
+	// 	switch p := p.(type) {
+	// 	case literalPacket:
+	// 		return p.getVersion()
+	// 	case operatorPacket:
+	// 		v := p.version
+	// 		for _, ch := range p.packets {
+	// 			v += sumVerRec(ch)
+	// 		}
+	// 		return v
+	// 	default:
+	// 		panic(p)
+	// 	}
+	// }
 
-	return sumVerRec(p), nil
+	// return sumVerRec(p), nil
+	return p.getValue(), nil
 }
 
 type packet interface {
 	getVersion() int
+	getValue() int
 }
 
+type operatorType int
+
 const (
-	Literal = 4
+	Literal operatorType = 4
 )
 
-func getVersionAndType(rawBin string) (int, int, string) {
+func getVersionAndType(rawBin string) (int, operatorType, string) {
 	version := binToInt(rawBin[0:3])
 	rawBin = rawBin[3:]
 	typeId := binToInt(rawBin[0:3])
 	rawBin = rawBin[3:]
-	switch typeId {
-	case Literal:
-		return version, Literal, rawBin
-	default:
-		// operator
-		return version, typeId, rawBin
-	}
+	return version, operatorType(typeId), rawBin
 }
 
 func decodePacketRawBin(rawBin string) (packet, string) {
@@ -64,7 +62,7 @@ func decodePacketRawBin(rawBin string) (packet, string) {
 	if typeId == Literal {
 		return decodeLiteral(rawBin)
 	} else {
-		return decodeOperator(rawBin)
+		return decodeOperator(rawBin, typeId)
 	}
 }
 
@@ -75,6 +73,10 @@ type literalPacket struct {
 
 func (p literalPacket) getVersion() int {
 	return p.version
+}
+
+func (p literalPacket) getValue() int {
+	return p.value
 }
 
 func (p literalPacket) String() string {
@@ -95,8 +97,8 @@ func decodeLiteral(rawBin string) (literalPacket, string) {
 			break
 		}
 	}
-	//val := binToInt(subBin)
-	val := -1
+	val := binToInt(subBin)
+	// val := -1
 	p := literalPacket{version: version, value: val}
 	return p, rawBin
 }
@@ -104,10 +106,66 @@ func decodeLiteral(rawBin string) (literalPacket, string) {
 type operatorPacket struct {
 	version int
 	packets []packet
+	opType  operatorType
 }
 
 func (p operatorPacket) getVersion() int {
 	return p.version
+}
+
+func (p operatorPacket) getValue() int {
+	switch p.opType {
+	case 0: // sum
+		s := 0
+		for _, p := range p.packets {
+			s += p.getValue()
+		}
+		return s
+	case 1: // product
+		s := 1
+		for _, p := range p.packets {
+			s *= p.getValue()
+		}
+		return s
+	case 2: // min
+		m := p.packets[0].getValue()
+		for _, p := range p.packets {
+			v := p.getValue()
+			if v < m {
+				m = v
+			}
+		}
+		return m
+	case 3: // max
+		m := p.packets[0].getValue()
+		for _, p := range p.packets {
+			v := p.getValue()
+			if v > m {
+				m = v
+			}
+		}
+		return m
+	case 5: // gt
+		if p.packets[0].getValue() > p.packets[1].getValue() {
+			return 1
+		} else {
+			return 0
+		}
+	case 6: // lt
+		if p.packets[0].getValue() < p.packets[1].getValue() {
+			return 1
+		} else {
+			return 0
+		}
+	case 7: // eq
+		if p.packets[0].getValue() == p.packets[1].getValue() {
+			return 1
+		} else {
+			return 0
+		}
+	default:
+		panic(fmt.Sprint(p))
+	}
 }
 
 func (p operatorPacket) String() string {
@@ -118,9 +176,9 @@ func (p operatorPacket) String() string {
 	return fmt.Sprintf("op:%d,[%s]", p.version, strings.Join(packets, ", "))
 }
 
-func decodeOperator(rawBin string) (operatorPacket, string) {
+func decodeOperator(rawBin string, typeId operatorType) (operatorPacket, string) {
 	advent.Printf("decodeOperator %s\n", rawBin)
-	version, _, rawBin := getVersionAndType(rawBin)
+	version, operatorType, rawBin := getVersionAndType(rawBin)
 	lengthTypeId, rawBin := rawBin[0], rawBin[1:]
 
 	var finalRawBin string
@@ -158,11 +216,11 @@ func decodeOperator(rawBin string) (operatorPacket, string) {
 		}
 	}
 
-	return operatorPacket{version: version, packets: packets}, finalRawBin
+	return operatorPacket{version: version, packets: packets, opType: operatorType}, finalRawBin
 }
 
 func binToInt(bin string) int {
-	i, err := strconv.ParseInt(bin, 2, 32)
+	i, err := strconv.ParseInt(bin, 2, 64)
 	if err != nil {
 		panic(err)
 	}
@@ -172,7 +230,7 @@ func binToInt(bin string) int {
 func hexToBin(hex string) (string, error) {
 	b := ""
 	for _, h := range hex {
-		d, err := strconv.ParseInt(fmt.Sprintf("%c", h), 16, 32)
+		d, err := strconv.ParseInt(fmt.Sprintf("%c", h), 16, 64)
 		if err != nil {
 			return "", err
 		}
