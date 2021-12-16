@@ -209,6 +209,25 @@ func (d GridInt) FindEndPos() Pos {
 	return end
 }
 
+func (d GridInt) String() string {
+	end := d.FindEndPos()
+
+	s := ""
+	for y := 0; y <= end.Y; y++ {
+		for x := 0; x <= end.X; x++ {
+			v := d[Pos{X: x, Y: y}]
+			if v < 0 || v > 9 {
+				s += "!"
+			} else {
+				s += fmt.Sprintf("%d", v)
+			}
+		}
+		s += "\n"
+	}
+	return s
+
+}
+
 var PrintEnabled = true
 
 func Printf(f string, args ...interface{}) {

@@ -12,6 +12,11 @@ var startPos = advent.Pos{0, 0}
 
 func Calc(r io.Reader) (int, error) {
 	riskGrid, err := advent.LoadGrid(r)
+	// advent.Printf("%s\n", riskGrid)
+
+	riskGrid = extendRiskGrid(riskGrid)
+
+	advent.Printf("%s\n", riskGrid)
 
 	endPos := findEndPos(riskGrid)
 	if err != nil {
@@ -27,12 +32,12 @@ func Calc(r io.Reader) (int, error) {
 	distances[startPos] = 0
 	delete(unvisited, startPos)
 
-	advent.Printf("grid:\n%v\n", riskGrid)
+	//advent.Printf("grid:\n%v\n", riskGrid)
 
 	current := startPos
 	for {
 		advent.Printf("len(unvisited) = %d\n", len(unvisited))
-		advent.Printf("current = %v\n", current)
+		// advent.Printf("current = %v\n", current)
 		neighbors := riskGrid.GetNeighbors4(current)
 		for _, neighbour := range neighbors {
 			if !unvisited[neighbour] {
@@ -62,7 +67,7 @@ func Calc(r io.Reader) (int, error) {
 			}
 		}
 
-		advent.Printf("nextPos: %v, unvisited: %v\n", nextPos, unvisited[nextPos])
+		// advent.Printf("nextPos: %v, unvisited: %v\n", nextPos, unvisited[nextPos])
 
 		advent.Assertf(len(unvisited) > 0, "no more unvisited")
 		current = nextPos
@@ -116,4 +121,27 @@ func trackPath(distances map[advent.Pos]int, start, end advent.Pos) []advent.Pos
 	}
 
 	return path
+}
+
+const Extension = 5
+
+func extendRiskGrid(original advent.GridInt) advent.GridInt {
+	extended := make(advent.GridInt)
+	origEnd := original.FindEndPos()
+	for origPos, origVal := range original {
+		for i := 0; i < Extension; i++ {
+			for k := 0; k < Extension; k++ {
+				p := advent.Pos{
+					X: (origEnd.X+1)*i + origPos.X,
+					Y: (origEnd.Y+1)*k + origPos.Y,
+				}
+				dv := i + k //advent.MaxInt([]int{i, k})
+				extended[p] = (origVal-1+dv)%9 + 1
+			}
+		}
+	}
+	return extended
+	// fmt.Printf("%s\n", extended)
+	// panic("done)")
+	// return extended
 }
