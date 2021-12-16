@@ -53,7 +53,7 @@ func Calc(r io.Reader) (int, error) {
 		for u := range unvisited {
 			ud := distances[u]
 			// fmt.Printf("u %v ud %d\n", u, ud)
-			if ud <= nextPosDist {
+			if ud < nextPosDist {
 				nextPosDist = ud
 				nextPos = u
 			}
