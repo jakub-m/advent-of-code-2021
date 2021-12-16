@@ -2,7 +2,6 @@ package main
 
 import (
 	"advent"
-	"fmt"
 	"io"
 )
 
@@ -22,26 +21,26 @@ func Calc(r io.Reader) (int, error) {
 	unvisited := make(map[advent.Pos]bool)
 	distances := make(map[advent.Pos]int)
 	for pos := range riskGrid {
-		distances[pos] = MaxInt
+		distances[pos] = MaxInt / 2 // make room for calculations
 		unvisited[pos] = true
 	}
 	distances[startPos] = 0
 	delete(unvisited, startPos)
 
-	fmt.Printf("grid:\n%v\n", riskGrid)
+	advent.Printf("grid:\n%v\n", riskGrid)
 
 	current := startPos
 	for {
-		fmt.Printf("len(unvisited) = %d\n", len(unvisited))
-		fmt.Printf("current = %v\n", current)
+		advent.Printf("len(unvisited) = %d\n", len(unvisited))
+		advent.Printf("current = %v\n", current)
 		neighbors := riskGrid.GetNeighbors4(current)
 		for _, neighbour := range neighbors {
 			if !unvisited[neighbour] {
 				continue
 			}
-			newDistThroughCurrent := distances[current] + riskGrid[neighbour]
+			newTentativeDistance := distances[current] + riskGrid[neighbour]
 			distances[neighbour] = advent.MinInt([]int{
-				newDistThroughCurrent,
+				newTentativeDistance,
 				distances[neighbour],
 			})
 		}
@@ -49,6 +48,10 @@ func Calc(r io.Reader) (int, error) {
 
 		nextPos := advent.Pos{X: -1, Y: -1}
 		nextPosDist := MaxInt
+
+		if _, ok := unvisited[endPos]; !ok {
+			break
+		}
 
 		for u := range unvisited {
 			ud := distances[u]
@@ -59,11 +62,7 @@ func Calc(r io.Reader) (int, error) {
 			}
 		}
 
-		fmt.Printf("nextPos: %v, unvisited: %v\n", nextPos, unvisited[nextPos])
-
-		if _, ok := unvisited[endPos]; !ok {
-			break
-		}
+		advent.Printf("nextPos: %v, unvisited: %v\n", nextPos, unvisited[nextPos])
 
 		advent.Assertf(len(unvisited) > 0, "no more unvisited")
 		current = nextPos
@@ -77,7 +76,7 @@ func Calc(r io.Reader) (int, error) {
 	for _, p := range path {
 		r := riskGrid[p]
 		sumRisk += r
-		fmt.Printf("%v = %d\n", p, r)
+		advent.Printf("%v = %d\n", p, r)
 	}
 	return sumRisk, nil
 }
@@ -111,10 +110,10 @@ func trackPath(distances map[advent.Pos]int, start, end advent.Pos) []advent.Pos
 			neighDist := distGrid[neigh]
 			if neighDist < currDist {
 				curr = neigh
+				currDist = neighDist
 			}
 		}
 	}
 
-	path = append(path, startPos)
 	return path
 }

@@ -194,3 +194,25 @@ func (d GridInt) GetNeighbors8(c Pos) []Pos {
 	}
 	return neighbors
 }
+
+func (d GridInt) FindEndPos() Pos {
+	end := Pos{0, 0}
+	for p := range d {
+		if p.X > end.X {
+			end = p
+		} else if p.X == end.X {
+			if p.Y > end.Y {
+				end = p
+			}
+		}
+	}
+	return end
+}
+
+var PrintEnabled = true
+
+func Printf(f string, args ...interface{}) {
+	if PrintEnabled {
+		fmt.Printf(f, args...)
+	}
+}

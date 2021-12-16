@@ -1,6 +1,7 @@
 package main
 
 import (
+	"advent"
 	"os"
 	"testing"
 
@@ -20,13 +21,14 @@ func TestCalc0(t *testing.T) {
 	assert.NoError(t, err)
 	v, err := Calc(f)
 	assert.NoError(t, err)
-	assert.Equal(t, 5, v)
+	assert.Equal(t, 8-1, v)
 }
 
 func TestCalc2(t *testing.T) {
+	advent.PrintEnabled = false
 	f, err := os.Open("input2")
 	assert.NoError(t, err)
 	v, err := Calc(f)
 	assert.NoError(t, err)
-	assert.Equal(t, 5, v)
+	assert.Equal(t, 811, v)
 }
