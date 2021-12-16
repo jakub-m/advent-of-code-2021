@@ -25,12 +25,15 @@ func Calc(r io.Reader) (int, error) {
 
 	unvisited := make(map[advent.Pos]bool)
 	distances := make(map[advent.Pos]int)
+	unvisitedHeap := PosIntHeap{}
 	for pos := range riskGrid {
 		distances[pos] = MaxInt / 2 // make room for calculations
 		unvisited[pos] = true
+		unvisitedHeap.Push(posInt{pos: pos, val: MaxInt})
 	}
 	distances[startPos] = 0
 	delete(unvisited, startPos)
+	unvisitedHeap.Push(posInt{pos: startPos, val: 0})
 
 	//advent.Printf("grid:\n%v\n", riskGrid)
 
@@ -44,30 +47,34 @@ func Calc(r io.Reader) (int, error) {
 				continue
 			}
 			newTentativeDistance := distances[current] + riskGrid[neighbour]
-			distances[neighbour] = advent.MinInt([]int{
+			newDist := advent.MinInt([]int{
 				newTentativeDistance,
 				distances[neighbour],
 			})
+
+			distances[neighbour] = newDist
+			unvisitedHeap.Push(posInt{pos: neighbour, val: newDist})
 		}
 		delete(unvisited, current)
 
-		nextPos := advent.Pos{X: -1, Y: -1}
-		nextPosDist := MaxInt
+		// nextPos := advent.Pos{X: -1, Y: -1}
+		// nextPosDist := MaxInt
 
 		if _, ok := unvisited[endPos]; !ok {
 			break
 		}
 
-		for u := range unvisited {
-			ud := distances[u]
-			// fmt.Printf("u %v ud %d\n", u, ud)
-			if ud < nextPosDist {
-				nextPosDist = ud
-				nextPos = u
-			}
-		}
+		// for u := range unvisited {
+		// 	ud := distances[u]
+		// 	// fmt.Printf("u %v ud %d\n", u, ud)
+		// 	if ud < nextPosDist {
+		// 		nextPosDist = ud
+		// 		nextPos = u
+		// 	}
+		// }
 
 		// advent.Printf("nextPos: %v, unvisited: %v\n", nextPos, unvisited[nextPos])
+		nextPos := unvisitedHeap.Pop().(posInt).pos
 
 		advent.Assertf(len(unvisited) > 0, "no more unvisited")
 		current = nextPos
@@ -144,4 +151,32 @@ func extendRiskGrid(original advent.GridInt) advent.GridInt {
 	// fmt.Printf("%s\n", extended)
 	// panic("done)")
 	// return extended
+}
+
+// Heap
+
+// An IntHeap is a min-heap of ints.
+type posInt struct {
+	pos advent.Pos
+	val int
+}
+
+type PosIntHeap []posInt
+
+func (h PosIntHeap) Len() int           { return len(h) }
+func (h PosIntHeap) Less(i, j int) bool { return h[i].val < h[j].val }
+func (h PosIntHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
+
+func (h *PosIntHeap) Push(x interface{}) {
+	// Push and Pop use pointer receivers because they modify the slice's length,
+	// not just its contents.
+	*h = append(*h, x.(posInt))
+}
+
+func (h *PosIntHeap) Pop() interface{} {
+	old := *h
+	n := len(old)
+	x := old[n-1]
+	*h = old[0 : n-1]
+	return x
 }
