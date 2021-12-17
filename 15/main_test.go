@@ -30,5 +30,5 @@ func TestCalc2(t *testing.T) {
 	assert.NoError(t, err)
 	v, err := Calc(f)
 	assert.NoError(t, err)
-	assert.Equal(t, 5, v)
+	assert.Equal(t, 3012, v)
 }

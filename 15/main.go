@@ -3,6 +3,7 @@ package main
 import (
 	"advent"
 	"io"
+	"sort"
 )
 
 const MaxUint = ^uint(0)
@@ -25,37 +26,37 @@ func Calc(r io.Reader) (int, error) {
 
 	unvisited := make(map[advent.Pos]bool)
 	distances := make(map[advent.Pos]int)
-	unvisitedHeap := PosIntHeap{}
+	sortedNextCandidates := []posWithDist{}
 	for pos := range riskGrid {
 		distances[pos] = MaxInt / 2 // make room for calculations
 		unvisited[pos] = true
-		unvisitedHeap.Push(posInt{pos: pos, val: MaxInt})
 	}
 	distances[startPos] = 0
 	delete(unvisited, startPos)
-	unvisitedHeap.Push(posInt{pos: startPos, val: 0})
 
 	//advent.Printf("grid:\n%v\n", riskGrid)
+	sortedNextCandidates = append(sortedNextCandidates, posWithDist{startPos, distances[startPos]})
 
-	current := startPos
+	current := sortedNextCandidates[0]
+	sortedNextCandidates = sortedNextCandidates[1:]
 	for {
 		advent.Printf("len(unvisited) = %d\n", len(unvisited))
 		// advent.Printf("current = %v\n", current)
-		neighbors := riskGrid.GetNeighbors4(current)
+		neighbors := riskGrid.GetNeighbors4(current.pos)
 		for _, neighbour := range neighbors {
 			if !unvisited[neighbour] {
 				continue
 			}
-			newTentativeDistance := distances[current] + riskGrid[neighbour]
+			newTentativeDistance := current.dist + riskGrid[neighbour]
 			newDist := advent.MinInt([]int{
 				newTentativeDistance,
 				distances[neighbour],
 			})
 
 			distances[neighbour] = newDist
-			unvisitedHeap.Push(posInt{pos: neighbour, val: newDist})
+			sortedNextCandidates = append(sortedNextCandidates, posWithDist{neighbour, newDist})
 		}
-		delete(unvisited, current)
+		delete(unvisited, current.pos)
 
 		// nextPos := advent.Pos{X: -1, Y: -1}
 		// nextPosDist := MaxInt
@@ -74,10 +75,14 @@ func Calc(r io.Reader) (int, error) {
 		// }
 
 		// advent.Printf("nextPos: %v, unvisited: %v\n", nextPos, unvisited[nextPos])
-		nextPos := unvisitedHeap.Pop().(posInt).pos
+		sort.Slice(sortedNextCandidates, func(i, j int) bool { return sortedNextCandidates[i].dist < sortedNextCandidates[j].dist })
+
+		for !unvisited[current.pos] {
+			current = sortedNextCandidates[0]
+			sortedNextCandidates = sortedNextCandidates[1:]
+		}
 
 		advent.Assertf(len(unvisited) > 0, "no more unvisited")
-		current = nextPos
 	}
 
 	// todo add end field risk
@@ -153,30 +158,7 @@ func extendRiskGrid(original advent.GridInt) advent.GridInt {
 	// return extended
 }
 
-// Heap
-
-// An IntHeap is a min-heap of ints.
-type posInt struct {
-	pos advent.Pos
-	val int
-}
-
-type PosIntHeap []posInt
-
-func (h PosIntHeap) Len() int           { return len(h) }
-func (h PosIntHeap) Less(i, j int) bool { return h[i].val < h[j].val }
-func (h PosIntHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
-
-func (h *PosIntHeap) Push(x interface{}) {
-	// Push and Pop use pointer receivers because they modify the slice's length,
-	// not just its contents.
-	*h = append(*h, x.(posInt))
-}
-
-func (h *PosIntHeap) Pop() interface{} {
-	old := *h
-	n := len(old)
-	x := old[n-1]
-	*h = old[0 : n-1]
-	return x
+type posWithDist struct {
+	pos  advent.Pos
+	dist int
 }
