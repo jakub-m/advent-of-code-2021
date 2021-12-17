@@ -13,17 +13,19 @@ func Calc(xStart, xEndIncl, yStart, yEndIncl int) (int, error) {
 	}
 
 	maxY := 0
+	count := 0
 	for x := 0; x < box.xEnd; x++ {
-		for y := 0; y < maxDim; y++ {
+		for y := yStart; y < maxDim; y++ {
 			p := xy{x, y}
 			if topY, ok := simulate(p, box); ok {
 				if topY > maxY {
 					maxY = topY
 				}
+				count++
 			}
 		}
 	}
-	return maxY, nil
+	return count, nil
 }
 
 func simulate(vector xy, target rect) (int, bool) {
