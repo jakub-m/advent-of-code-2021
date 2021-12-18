@@ -187,7 +187,7 @@ func shouldExplode(n node) bool {
 	if !ok {
 		return false
 	}
-	return b.level >= 4
+	return b.level > 4
 }
 
 func findFirstValueBefore(ref *valueNode, root node) *valueNode {
