@@ -42,7 +42,7 @@ func TestReduce(t *testing.T) {
 	for _, tc := range tcs {
 		n, err := parse(tc.in)
 		assert.NoError(t, err)
-		n = reduce(n)
+		reduce(n)
 		assert.NoError(t, err)
 		assert.Equal(t, tc.out, n.String())
 	}
@@ -75,11 +75,21 @@ func TestSplit(t *testing.T) {
 	for _, tc := range tcs {
 		n, err := parse(tc.in)
 		assert.NoError(t, err)
-		n = reduce(n)
+		reduce(n)
 		assert.NoError(t, err)
 		assert.Equal(t, tc.out, n.String())
 	}
 
+}
+
+func TestReduceAll(t *testing.T) {
+	in := "[[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]"
+	out := "[[[[0,7],4],[[7,8],[6,0]]],[8,1]]"
+	n, err := parse(in)
+	assert.NoError(t, err)
+	reduceAll(n)
+	assert.NoError(t, err)
+	assert.Equal(t, out, n.String())
 }
 
 // [[1,2],[[3,4],5]] becomes 143.

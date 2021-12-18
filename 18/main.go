@@ -63,7 +63,15 @@ func numberAndRest(in string) (string, string) {
 	return m[1], m[2]
 }
 
-func reduce(root node) node {
+func reduceAll(root node) {
+	for {
+		if applied := reduce(root); !applied {
+			break
+		}
+	}
+}
+
+func reduce(root node) bool {
 	// rec return flag if an action was applied.
 	advent.Println("reduce", root)
 	var rec func(node) bool
@@ -82,7 +90,7 @@ func reduce(root node) node {
 					nodeAfter.val += rightValue.val
 				}
 				zero := valueNode{val: 0, level: n.getLevel(), parent: n.getParent()}
-				n.getParent().(*binaryNode).replaceWith(n, zero)
+				n.getParent().(*binaryNode).replaceWith(n, &zero)
 				return true
 			}
 			if applied := rec(n.left); applied {
@@ -113,10 +121,9 @@ func reduce(root node) node {
 			}
 			return false
 		}
-		panic(fmt.Sprintf("%T %s", n, n))
+		panic(fmt.Sprintf("invalid type %T %s", n, n))
 	}
-	rec(root)
-	return root
+	return rec(root)
 }
 
 type node interface {
