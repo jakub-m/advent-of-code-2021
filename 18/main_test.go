@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -90,6 +91,14 @@ func TestReduceAll(t *testing.T) {
 	reduceAll(n)
 	assert.NoError(t, err)
 	assert.Equal(t, out, n.String())
+}
+
+func TestInput1(t *testing.T) {
+	f, err := os.Open("input10")
+	assert.NoError(t, err)
+	v, err := CalcSumMagnitude(f)
+	assert.NoError(t, err)
+	assert.Equal(t, 4140, v)
 }
 
 // [[1,2],[[3,4],5]] becomes 143.
