@@ -11,7 +11,7 @@ func Calc(r io.Reader) (int, error) {
 }
 
 func parse(str string) (node, error) {
-	n, rest, err := parseRec(str)
+	n, rest, err := parseRec(str, 0, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -21,10 +21,11 @@ func parse(str string) (node, error) {
 	return n, nil
 }
 
-func parseRec(input string) (node, string, error) {
+func parseRec(input string, level int, curr node) (node, string, error) {
 	ch, rest := firstRest(input)
 	if ch == "[" {
-		nodeLeft, rest, err := parseRec(rest)
+		bin := binaryNode{level: level + 1, parent: curr}
+		nodeLeft, rest, err := parseRec(rest, level+1, &bin)
 		if err != nil {
 			return nil, "", err
 		}
@@ -32,7 +33,7 @@ func parseRec(input string) (node, string, error) {
 		if ch != "," {
 			return nil, "", fmt.Errorf("expected , got %s", ch)
 		}
-		nodeRight, rest, err := parseRec(rest)
+		nodeRight, rest, err := parseRec(rest, level+1, &bin)
 		if err != nil {
 			return nil, "", err
 		}
@@ -40,25 +41,52 @@ func parseRec(input string) (node, string, error) {
 		if ch != "]" {
 			return nil, "", fmt.Errorf("expected ] got %s", ch)
 		}
-		n := binaryNode{nodeLeft, nodeRight}
-		return &n, rest, nil
+		bin.left = nodeLeft
+		bin.right = nodeRight
+		// n := binaryNode{left: nodeLeft, right: nodeRight, level: level + 1}
+		// return &n, rest, nil
+		return &bin, rest, nil
 	} else {
 		val, err := strconv.Atoi(ch)
 		if err != nil {
 			return nil, "", err
 		}
-		n := valueNode{val}
+		n := valueNode{val: val, level: level + 1, parent: curr}
 		return &n, rest, nil
 	}
+}
+
+func reduce(root node) node {
+	var rec func(node)
+	rec = func(n node) {
+		fmt.Println(n.getLevel(), n, n.getParent())
+		switch b := n.(type) {
+		case *binaryNode:
+			rec(b.left)
+			rec(b.right)
+		case *valueNode:
+
+		// if n.getLevel() == 4 {
+		// 	fmt.Print(n)
+		default:
+			panic(fmt.Sprintf("%T %s", n, n))
+		}
+	}
+	rec(root)
+	return root
 }
 
 type node interface {
 	magnitude() int
 	String() string
+	getLevel() int
+	getParent() node
 }
 
 type valueNode struct {
-	val int
+	val    int
+	level  int
+	parent node
 }
 
 func (n valueNode) String() string {
@@ -69,9 +97,19 @@ func (n valueNode) magnitude() int {
 	return n.val
 }
 
+func (n valueNode) getLevel() int {
+	return n.level
+}
+
+func (n valueNode) getParent() node {
+	return n.parent
+}
+
 type binaryNode struct {
-	left  node
-	right node
+	left   node
+	right  node
+	level  int
+	parent node
 }
 
 func (n binaryNode) String() string {
@@ -80,6 +118,14 @@ func (n binaryNode) String() string {
 
 func (n binaryNode) magnitude() int {
 	return 3*n.left.magnitude() + 2*n.right.magnitude()
+}
+
+func (n binaryNode) getLevel() int {
+	return n.level
+}
+
+func (n binaryNode) getParent() node {
+	return n.parent
 }
 
 func firstRest(s string) (string, string) {

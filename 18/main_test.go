@@ -19,7 +19,7 @@ func TestReduce(t *testing.T) {
 	in := "[[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]"
 	n, err := parse(in)
 	assert.NoError(t, err)
-	n = n.reduce()
+	n = reduce(n)
 	assert.NoError(t, err)
 	assert.Equal(t, "[[[[0,7],4],[[7,8],[6,0]]],[8,1]]", n.String())
 }
