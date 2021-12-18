@@ -4,6 +4,7 @@ import (
 	"advent"
 	"fmt"
 	"io"
+	"regexp"
 	"strconv"
 )
 
@@ -44,10 +45,9 @@ func parseRec(input string, level int, curr node) (node, string, error) {
 		}
 		bin.left = nodeLeft
 		bin.right = nodeRight
-		// n := binaryNode{left: nodeLeft, right: nodeRight, level: level + 1}
-		// return &n, rest, nil
 		return &bin, rest, nil
 	} else {
+		ch, rest := numberAndRest(input)
 		val, err := strconv.Atoi(ch)
 		if err != nil {
 			return nil, "", err
@@ -55,6 +55,12 @@ func parseRec(input string, level int, curr node) (node, string, error) {
 		n := valueNode{val: val, level: level + 1, parent: curr}
 		return &n, rest, nil
 	}
+}
+
+func numberAndRest(in string) (string, string) {
+	re := regexp.MustCompile(`(\d+)(.*)`)
+	m := re.FindStringSubmatch(in)
+	return m[1], m[2]
 }
 
 func reduce(root node) node {
@@ -87,8 +93,25 @@ func reduce(root node) node {
 			}
 			return false
 		case *valueNode:
+			if n.val >= 10 {
+				split := &binaryNode{
+					level:  n.level,
+					parent: n.getParent(),
+				}
+				split.left = &valueNode{
+					val:    (n.val / 2),
+					level:  split.level + 1,
+					parent: split,
+				}
+				split.right = &valueNode{
+					val:    (n.val/2 + n.val%2),
+					level:  split.level + 1,
+					parent: split,
+				}
+				n.getParent().(*binaryNode).replaceWith(n, split)
+				return true
+			}
 			return false
-			// TODO split here
 		}
 		panic(fmt.Sprintf("%T %s", n, n))
 	}

@@ -48,6 +48,40 @@ func TestReduce(t *testing.T) {
 	}
 }
 
+func TestSplit(t *testing.T) {
+	// after addition: [[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]
+	// after explode:  [[[[0,7],4],[7,[[8,4],9]]],[1,1]]
+	// after explode:  [[[[0,7],4],[15,[0,13]]],[1,1]]
+	// after split:    [[[[0,7],4],[[7,8],[0,13]]],[1,1]]
+	// after split:    [[[[0,7],4],[[7,8],[0,[6,7]]]],[1,1]]
+	// after explode:  [[[[0,7],4],[[7,8],[6,0]]],[8,1]]
+
+	tcs := []struct {
+		in, out string
+	}{
+		{
+			in:  "[15,1]",
+			out: "[[7,8],1]",
+		},
+		{
+			in:  "[[[[0,7],4],[15,[0,13]]],[1,1]]",
+			out: "[[[[0,7],4],[[7,8],[0,13]]],[1,1]]",
+		},
+		{
+			in:  "[[[[0,7],4],[[7,8],[0,[6,7]]]],[1,1]]",
+			out: "[[[[0,7],4],[[7,8],[6,0]]],[8,1]]",
+		},
+	}
+	for _, tc := range tcs {
+		n, err := parse(tc.in)
+		assert.NoError(t, err)
+		n = reduce(n)
+		assert.NoError(t, err)
+		assert.Equal(t, tc.out, n.String())
+	}
+
+}
+
 // [[1,2],[[3,4],5]] becomes 143.
 // [[[[0,7],4],[[7,8],[6,0]]],[8,1]] becomes 1384.
 // [[[[1,1],[2,2]],[3,3]],[4,4]] becomes 445.
