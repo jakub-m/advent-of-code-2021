@@ -235,3 +235,9 @@ func Printf(f string, args ...interface{}) {
 		fmt.Printf(f, args...)
 	}
 }
+
+func Println(args ...interface{}) {
+	if PrintEnabled {
+		fmt.Println(args...)
+	}
+}

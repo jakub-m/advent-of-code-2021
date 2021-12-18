@@ -16,12 +16,13 @@ func TestMagnitude(t *testing.T) {
 }
 
 func TestReduce(t *testing.T) {
-	in := "[[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]"
+	in := "[[[[[9,8],1],2],3],4]"
+	out := "[[[[0,9],2],3],4]"
 	n, err := parse(in)
 	assert.NoError(t, err)
 	n = reduce(n)
 	assert.NoError(t, err)
-	assert.Equal(t, "[[[[0,7],4],[[7,8],[6,0]]],[8,1]]", n.String())
+	assert.Equal(t, out, n.String())
 }
 
 // [[1,2],[[3,4],5]] becomes 143.
