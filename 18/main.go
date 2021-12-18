@@ -153,6 +153,7 @@ type node interface {
 	String() string
 	getLevel() int
 	getParent() node
+	setParentAndLevel(node, int)
 }
 
 type valueNode struct {
@@ -177,6 +178,11 @@ func (n valueNode) getParent() node {
 	return n.parent
 }
 
+func (n *valueNode) setParentAndLevel(p node, level int) {
+	n.parent = p
+	n.level = level
+}
+
 type binaryNode struct {
 	left   node
 	right  node
@@ -198,6 +204,11 @@ func (n binaryNode) getLevel() int {
 
 func (n binaryNode) getParent() node {
 	return n.parent
+}
+
+func (n *binaryNode) setParentAndLevel(p node, level int) {
+	n.parent = p
+	n.level = level
 }
 
 func (n *binaryNode) replaceWith(ref node, newNode node) {
@@ -265,4 +276,17 @@ func flattenValues(root node) []*valueNode {
 	}
 	rec(root)
 	return values
+}
+
+func fixParentsAndLevels(root node) {
+	var rec func(node, node, int)
+
+	rec = func(n node, parent node, parentLevel int) {
+		n.setParentAndLevel(parent, parentLevel+1)
+		if b, ok := n.(*binaryNode); ok {
+			rec(b.left, b, b.level)
+			rec(b.right, b, b.level)
+		}
+	}
+	rec(root, nil, 0)
 }
