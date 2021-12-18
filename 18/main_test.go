@@ -7,7 +7,6 @@ import (
 )
 
 func TestMagnitude(t *testing.T) {
-	// v, err := Calc(strings.NewReader(""))
 	in := "[[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]]"
 	n, err := parse(in)
 	assert.NoError(t, err)
@@ -16,13 +15,21 @@ func TestMagnitude(t *testing.T) {
 }
 
 func TestReduce(t *testing.T) {
-	in := "[[[[[9,8],1],2],3],4]"
-	out := "[[[[0,9],2],3],4]"
-	n, err := parse(in)
-	assert.NoError(t, err)
-	n = reduce(n)
-	assert.NoError(t, err)
-	assert.Equal(t, out, n.String())
+	tcs := []struct {
+		in, out string
+	}{
+		{
+			in:  "[[[[[9,8],1],2],3],4]",
+			out: "[[[[0,9],2],3],4]",
+		},
+	}
+	for _, tc := range tcs {
+		n, err := parse(tc.in)
+		assert.NoError(t, err)
+		n = reduce(n)
+		assert.NoError(t, err)
+		assert.Equal(t, tc.out, n.String())
+	}
 }
 
 // [[1,2],[[3,4],5]] becomes 143.

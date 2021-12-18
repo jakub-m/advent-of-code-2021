@@ -65,17 +65,30 @@ func reduce(root node) node {
 		// fmt.Println(n.getLevel(), n, n.getParent())
 		switch n := n.(type) {
 		case *binaryNode:
-			if _, _, ok := shouldExplode(n.left); ok {
-				advent.Println("should explode (left)", n.left)
-				explode(n.left)
+			if ok := shouldExplode(n); ok {
+				leftValue := n.left.(*valueNode)
+				if nodeBefore := findFirstValueBefore(leftValue, root); nodeBefore != nil {
+					advent.Println("node before", nodeBefore)
+					nodeBefore.val += leftValue.val
+				}
+				rightValue := n.right.(*valueNode)
+				if nodeAfter := findFirstValueAfter(rightValue, root); nodeAfter != nil {
+					nodeAfter.val += rightValue.val
+				}
+				n.getParent().(*binaryNode).replaceWithZero(n)
 				return true
 			}
-			if _, _, ok := shouldExplode(n.right); ok {
-				advent.Println("should explode (right)", n.right)
-				explode(n.right)
-				n.right = &valueNode{val: 0, level: n.level + 1, parent: n}
-				return true
-			}
+			// if ok := shouldExplode(n.left); ok {
+			// 	advent.Println("should explode (left)", n.left)
+			// 	explode(n.left)
+			// 	return true
+			// }
+			// if ok := shouldExplode(n.right); ok {
+			// 	advent.Println("should explode (right)", n.right)
+			// 	explode(n.right)
+			// 	n.right = &valueNode{val: 0, level: n.level + 1, parent: n}
+			// 	return true
+			// }
 			if applied := rec(n.left); applied {
 				return applied
 			}
@@ -145,104 +158,70 @@ func (n binaryNode) getParent() node {
 	return n.parent
 }
 
+func (n *binaryNode) replaceWithZero(ref node) {
+	zero := valueNode{val: 0, level: ref.getLevel(), parent: n}
+	if n.left == ref {
+		n.left = &zero
+	} else if n.right == ref {
+		n.right = &zero
+	} else {
+		panic("incorrect ref, neither left nor right")
+	}
+
+}
+
 func firstRest(s string) (string, string) {
 	return s[:1], s[1:]
 }
 
-func explode(n node) {
-	lv, rv, ok := shouldExplode(n)
-	if !ok {
-		panic(fmt.Sprintf("should not explode %s", n))
-	}
-	p := n.getParent()
-
-	advent.Println("find up other left branch")
-	if u, ok := findUp(p, hasLeftBranchOtherThan(p)); ok {
-		r := findRightMostValueNode(u)
-		advent.Println("found value on left", r)
-		r.val += lv
-	}
-	advent.Println("find up other right branch")
-	if u, ok := findUp(p, hasRightBranchOtherThan(p)); ok {
-		l := findLeftMostValue(u)
-		advent.Println("found value on right", l)
-		l.val += rv
-	}
-}
-
-func shouldExplode(n node) (int, int, bool) {
+func shouldExplode(n node) bool {
 	b, ok := n.(*binaryNode)
 	if !ok {
-		return 0, 0, false
+		return false
 	}
-	ln, ok := b.left.(*valueNode)
+	_, ok = b.left.(*valueNode)
 	if !ok {
-		return 0, 0, false
+		return false
 	}
-	rn, ok := b.right.(*valueNode)
+	_, ok = b.right.(*valueNode)
 	if !ok {
-		return 0, 0, false
+		return false
 	}
-	if b.level >= 4 {
-		return ln.val, rn.val, true
-	} else {
-		return 0, 0, false
-	}
+	return b.level >= 4
 }
 
-func findUp(root node, cond func(node) bool) (*binaryNode, bool) {
-	advent.Println("findUp", root)
-	if root == nil {
-		return nil, false
-	}
-	b, ok := root.(*binaryNode)
-	if !ok {
-		return nil, false
-	}
-	if ok := cond(b); ok {
-		advent.Println("findUp OK", root)
-		return b, true
-	} else {
-		return findUp(b.parent, cond)
-	}
-}
-
-func hasLeftBranchOtherThan(ref node) func(node) bool {
-	return func(n node) bool {
-		b, ok := n.(*binaryNode)
-		if !ok {
-			return false
+func findFirstValueBefore(ref *valueNode, root node) *valueNode {
+	values := flattenValues(root)
+	for i, v := range values {
+		if v == ref && i > 0 {
+			return values[i-1]
 		}
-		return b.left != ref
-	}
-}
-
-func hasRightBranchOtherThan(ref node) func(node) bool {
-	return func(n node) bool {
-		b, ok := n.(*binaryNode)
-		if !ok {
-			return false
-		}
-		return b.right != ref
-	}
-}
-
-func findRightMostValueNode(b *binaryNode) *valueNode {
-	switch v := b.right.(type) {
-	case *binaryNode:
-		return findRightMostValueNode(v)
-	case *valueNode:
-		return v
 	}
 	return nil
 }
 
-func findLeftMostValue(b *binaryNode) *valueNode {
-	switch v := b.left.(type) {
-	case *binaryNode:
-		return findLeftMostValue(v)
-	case *valueNode:
-		return v
+func findFirstValueAfter(ref *valueNode, root node) *valueNode {
+	values := flattenValues(root)
+	for i, v := range values {
+		if v == ref && i < (len(values)-1) {
+			return values[i+1]
+		}
 	}
 	return nil
+}
+
+func flattenValues(root node) []*valueNode {
+	values := []*valueNode{}
+	var rec func(n node)
+	rec = func(n node) {
+		switch n := n.(type) {
+		case *binaryNode:
+			rec(n.left)
+			rec(n.right)
+		case *valueNode:
+			values = append(values, n)
+		}
+	}
+	rec(root)
+	return values
 }
