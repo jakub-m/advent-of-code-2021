@@ -37,21 +37,21 @@ func CalcSum(r io.Reader) (node, error) {
 }
 
 func parse(str string) (node, error) {
-	n, rest, err := parseRec(str, 0, nil)
+	n, rest, err := parseRec(str)
 	if err != nil {
 		return nil, err
 	}
 	if rest != "" {
 		return nil, fmt.Errorf("incomplete parsing: %s", rest)
 	}
+	fixParentsAndLevels(n)
 	return n, nil
 }
 
-func parseRec(input string, level int, curr node) (node, string, error) {
+func parseRec(input string) (node, string, error) {
 	ch, rest := firstRest(input)
 	if ch == "[" {
-		bin := binaryNode{level: level + 1, parent: curr}
-		nodeLeft, rest, err := parseRec(rest, level+1, &bin)
+		nodeLeft, rest, err := parseRec(rest)
 		if err != nil {
 			return nil, "", err
 		}
@@ -59,7 +59,7 @@ func parseRec(input string, level int, curr node) (node, string, error) {
 		if ch != "," {
 			return nil, "", fmt.Errorf("expected , got %s", ch)
 		}
-		nodeRight, rest, err := parseRec(rest, level+1, &bin)
+		nodeRight, rest, err := parseRec(rest)
 		if err != nil {
 			return nil, "", err
 		}
@@ -67,6 +67,7 @@ func parseRec(input string, level int, curr node) (node, string, error) {
 		if ch != "]" {
 			return nil, "", fmt.Errorf("expected ] got %s", ch)
 		}
+		bin := binaryNode{}
 		bin.left = nodeLeft
 		bin.right = nodeRight
 		return &bin, rest, nil
@@ -76,7 +77,7 @@ func parseRec(input string, level int, curr node) (node, string, error) {
 		if err != nil {
 			return nil, "", err
 		}
-		n := valueNode{val: val, level: level + 1, parent: curr}
+		n := valueNode{val: val}
 		return &n, rest, nil
 	}
 }
@@ -89,24 +90,45 @@ func numberAndRest(in string) (string, string) {
 
 func reduceAll(root node) {
 	for {
-		if applied := reduce(root); !applied {
+		if appliedAtLeastOnce := reduceOnce(root); !appliedAtLeastOnce {
 			break
 		}
 	}
 }
 
-func reduce(root node) bool {
+func reduceOnce(root node) bool {
+	advent.Println("inp", root)
+	appliedAtLeastOnce := false
+	for {
+		if applied := reduceExplode(root); applied {
+			advent.Println("exp", root)
+			appliedAtLeastOnce = true
+		} else {
+			break
+		}
+	}
+	return reduceSplit(root) || appliedAtLeastOnce
+	// for {
+	// 	if applied := reduceSplit(root); applied {
+	// 		advent.Println("spl", root)
+	// 		appliedAtLeastOnce = true
+	// 	} else {
+	// 		break
+	// 	}
+	// }
+	// return appliedAtLeastOnce
+}
+
+func reduceExplode(root node) bool {
 	// rec return flag if an action was applied.
 	// advent.Println("reduce", root)
 	var rec func(node) bool
 	rec = func(n node) bool {
-		// fmt.Println(n.getLevel(), n, n.getParent())
 		switch n := n.(type) {
 		case *binaryNode:
 			if ok := shouldExplode(n); ok {
 				leftValue := n.left.(*valueNode)
 				if nodeBefore := findFirstValueBefore(leftValue, root); nodeBefore != nil {
-					// advent.Println("node before", nodeBefore)
 					nodeBefore.val += leftValue.val
 				}
 				rightValue := n.right.(*valueNode)
@@ -117,6 +139,26 @@ func reduce(root node) bool {
 				n.getParent().(*binaryNode).replaceWith(n, &zero)
 				return true
 			}
+			if applied := rec(n.left); applied {
+				return applied
+			}
+			if applied := rec(n.right); applied {
+				return applied
+			}
+			return false
+		case *valueNode:
+			return false
+		}
+		panic(fmt.Sprintf("invalid type %T %s", n, n))
+	}
+	return rec(root)
+}
+
+func reduceSplit(root node) bool {
+	var rec func(node) bool
+	rec = func(n node) bool {
+		switch n := n.(type) {
+		case *binaryNode:
 			if applied := rec(n.left); applied {
 				return applied
 			}

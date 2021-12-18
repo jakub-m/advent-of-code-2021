@@ -45,7 +45,7 @@ func TestReduce(t *testing.T) {
 	for _, tc := range tcs {
 		n, err := parse(tc.in)
 		assert.NoError(t, err)
-		reduce(n)
+		reduceExplode(n)
 		assert.NoError(t, err)
 		assert.Equal(t, tc.out, n.String())
 	}
@@ -61,24 +61,28 @@ func TestSplit(t *testing.T) {
 
 	tcs := []struct {
 		in, out string
+		fn      func(node) bool
 	}{
 		{
 			in:  "[15,1]",
 			out: "[[7,8],1]",
+			fn:  reduceSplit,
 		},
 		{
 			in:  "[[[[0,7],4],[15,[0,13]]],[1,1]]",
 			out: "[[[[0,7],4],[[7,8],[0,13]]],[1,1]]",
+			fn:  reduceSplit,
 		},
 		{
 			in:  "[[[[0,7],4],[[7,8],[0,[6,7]]]],[1,1]]",
 			out: "[[[[0,7],4],[[7,8],[6,0]]],[8,1]]",
+			fn:  reduceExplode,
 		},
 	}
 	for _, tc := range tcs {
 		n, err := parse(tc.in)
 		assert.NoError(t, err)
-		reduce(n)
+		tc.fn(n)
 		assert.NoError(t, err)
 		assert.Equal(t, tc.out, n.String())
 	}
@@ -86,13 +90,8 @@ func TestSplit(t *testing.T) {
 }
 
 func TestReduceAll(t *testing.T) {
-	in := "[[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]"
-	out := "[[[[0,7],4],[[7,8],[6,0]]],[8,1]]"
-	n, err := parse(in)
-	assert.NoError(t, err)
-	reduceAll(n)
-	assert.NoError(t, err)
-	assert.Equal(t, out, n.String())
+	expected := "[[[[0,7],4],[[7,8],[6,0]]],[8,1]]"
+	testSum(t, "[[[[4,3],4],4],[7,[[8,4],9]]]", "[1,1]", expected)
 }
 
 func TestInput1(t *testing.T) {
@@ -119,11 +118,27 @@ func TestInput3(t *testing.T) {
 	assert.Equal(t, "[[[[5,0],[7,4]],[5,5]],[6,6]]", v.String())
 }
 
+func TestNoReduce(t *testing.T) {
+	in := "[[[[6,6],[6,6]],[[6,0],[6,7]]],[[[7,7],[8,9]],[8,[8,1]]]]"
+	n, err := parse(in)
+	assert.NoError(t, err)
+	reduceAll(n)
+	assert.Equal(t, in, n.String())
+}
+
 func TestSum1(t *testing.T) {
 	testSum(t,
 		"[[[0,[4,5]],[0,0]],[[[4,5],[2,6]],[9,5]]]",
 		"[7,[[[3,7],[4,3]],[[6,3],[8,8]]]]",
 		"[[[[4,0],[5,4]],[[7,7],[6,0]]],[[8,[7,7]],[[7,9],[5,0]]]]",
+	)
+}
+
+func TestSum6(t *testing.T) {
+	testSum(t,
+		"[[[[6,6],[6,6]],[[6,0],[6,7]]],[[[7,7],[8,9]],[8,[8,1]]]]",
+		"[2,9]",
+		"[[[[6,6],[7,7]],[[0,7],[7,7]]],[[[5,5],[5,6]],9]]",
 	)
 }
 
@@ -138,6 +153,7 @@ func TestInput10(t *testing.T) {
 	assert.NoError(t, err)
 	v, err := CalcSum(f)
 	assert.NoError(t, err)
+	assert.Equal(t, 4140, v.magnitude())
 	assert.Equal(t, "[[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]]", v.String())
 }
 
