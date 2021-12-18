@@ -134,6 +134,38 @@ func TestSum1(t *testing.T) {
 	)
 }
 
+func TestSum2(t *testing.T) {
+	testSum(t,
+		"[[[[4,0],[5,4]],[[7,7],[6,0]]],[[8,[7,7]],[[7,9],[5,0]]]]",
+		"[[2,[[0,8],[3,4]]],[[[6,7],1],[7,[1,6]]]]",
+		"[[[[6,7],[6,7]],[[7,7],[0,7]]],[[[8,7],[7,7]],[[8,8],[8,0]]]]",
+	)
+}
+
+func TestSum3(t *testing.T) {
+	testSum(t,
+		"[[[[6,7],[6,7]],[[7,7],[0,7]]],[[[8,7],[7,7]],[[8,8],[8,0]]]]",
+		"[[[[2,4],7],[6,[0,5]]],[[[6,8],[2,8]],[[2,1],[4,5]]]]",
+		"[[[[7,0],[7,7]],[[7,7],[7,8]]],[[[7,7],[8,8]],[[7,7],[8,7]]]]",
+	)
+}
+
+func TestSum4(t *testing.T) {
+	testSum(t,
+		"[[[[7,0],[7,7]],[[7,7],[7,8]]],[[[7,7],[8,8]],[[7,7],[8,7]]]]",
+		"[7,[5,[[3,8],[1,4]]]]",
+		"[[[[7,7],[7,8]],[[9,5],[8,7]]],[[[6,8],[0,8]],[[9,9],[9,0]]]]",
+	)
+}
+
+func TestSum5(t *testing.T) {
+	testSum(t,
+		"[[[[7,7],[7,8]],[[9,5],[8,7]]],[[[6,8],[0,8]],[[9,9],[9,0]]]]",
+		"[[2,[2,2]],[8,[8,1]]]",
+		"[[[[6,6],[6,6]],[[6,0],[6,7]]],[[[7,7],[8,9]],[8,[8,1]]]]",
+	)
+}
+
 func TestSum6(t *testing.T) {
 	testSum(t,
 		"[[[[6,6],[6,6]],[[6,0],[6,7]]],[[[7,7],[8,9]],[8,[8,1]]]]",
@@ -172,18 +204,27 @@ func testSum(t *testing.T, left, right, expected string) {
 	assert.Equal(t, expected, v.String())
 }
 
+func TestInput5(t *testing.T) {
+	f, err := os.Open("input5")
+	assert.NoError(t, err)
+	v, err := CalcSum(f)
+	assert.NoError(t, err)
+	assert.Equal(t, "[[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]]", v.String())
+}
+
 func TestInput10(t *testing.T) {
 	f, err := os.Open("input10")
 	assert.NoError(t, err)
 	v, err := CalcSum(f)
 	assert.NoError(t, err)
 	assert.Equal(t, 4140, v.magnitude())
-	assert.Equal(t, "[[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]]", v.String())
+	assert.Equal(t, "[[[[6,6],[7,6]],[[7,7],[7,0]]],[[[7,7],[7,7]],[[7,8],[9,9]]]]", v.String())
 }
 
-// [[1,2],[[3,4],5]] becomes 143.
-// [[[[0,7],4],[[7,8],[6,0]]],[8,1]] becomes 1384.
-// [[[[1,1],[2,2]],[3,3]],[4,4]] becomes 445.
-// [[[[3,0],[5,3]],[4,4]],[5,5]] becomes 791.
-// [[[[5,0],[7,4]],[5,5]],[6,6]] becomes 1137.
-// [[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]] becomes 3488.
+func TestInput20(t *testing.T) {
+	f, err := os.Open("input20")
+	assert.NoError(t, err)
+	v, err := CalcSum(f)
+	assert.NoError(t, err)
+	assert.Equal(t, 4289, v.magnitude())
+}
