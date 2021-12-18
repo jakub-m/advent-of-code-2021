@@ -75,20 +75,10 @@ func reduce(root node) node {
 				if nodeAfter := findFirstValueAfter(rightValue, root); nodeAfter != nil {
 					nodeAfter.val += rightValue.val
 				}
-				n.getParent().(*binaryNode).replaceWithZero(n)
+				zero := valueNode{val: 0, level: n.getLevel(), parent: n.getParent()}
+				n.getParent().(*binaryNode).replaceWith(n, zero)
 				return true
 			}
-			// if ok := shouldExplode(n.left); ok {
-			// 	advent.Println("should explode (left)", n.left)
-			// 	explode(n.left)
-			// 	return true
-			// }
-			// if ok := shouldExplode(n.right); ok {
-			// 	advent.Println("should explode (right)", n.right)
-			// 	explode(n.right)
-			// 	n.right = &valueNode{val: 0, level: n.level + 1, parent: n}
-			// 	return true
-			// }
 			if applied := rec(n.left); applied {
 				return applied
 			}
@@ -158,12 +148,11 @@ func (n binaryNode) getParent() node {
 	return n.parent
 }
 
-func (n *binaryNode) replaceWithZero(ref node) {
-	zero := valueNode{val: 0, level: ref.getLevel(), parent: n}
+func (n *binaryNode) replaceWith(ref node, newNode node) {
 	if n.left == ref {
-		n.left = &zero
+		n.left = newNode
 	} else if n.right == ref {
-		n.right = &zero
+		n.right = newNode
 	} else {
 		panic("incorrect ref, neither left nor right")
 	}
