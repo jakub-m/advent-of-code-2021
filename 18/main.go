@@ -6,7 +6,33 @@ import (
 	"io"
 	"regexp"
 	"strconv"
+	"strings"
 )
+
+func FindLargestMagnitude(r io.Reader) (node, error) {
+	lines, err := advent.ReadLinesTrim(r)
+	if err != nil {
+		return nil, err
+	}
+
+	maxMagnitude := 0
+	var maxMagnitudNode node
+	for _, i := range lines {
+		for _, k := range lines {
+			s := fmt.Sprintf("%s\n%s", i, k)
+			n, err := CalcSum(strings.NewReader(s))
+			if err != nil {
+				return nil, err
+			}
+			m := n.magnitude()
+			if m > maxMagnitude {
+				maxMagnitude = m
+				maxMagnitudNode = n
+			}
+		}
+	}
+	return maxMagnitudNode, nil
+}
 
 func CalcSum(r io.Reader) (node, error) {
 	lines, err := advent.ReadLinesTrim(r)

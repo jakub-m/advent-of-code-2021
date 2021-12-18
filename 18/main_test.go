@@ -1,6 +1,7 @@
 package main
 
 import (
+	"advent"
 	"fmt"
 	"os"
 	"strings"
@@ -227,4 +228,21 @@ func TestInput20(t *testing.T) {
 	v, err := CalcSum(f)
 	assert.NoError(t, err)
 	assert.Equal(t, 4289, v.magnitude())
+}
+
+func TestLargestSum10(t *testing.T) {
+	f, err := os.Open("input10")
+	assert.NoError(t, err)
+	v, err := FindLargestMagnitude(f)
+	assert.NoError(t, err)
+	assert.Equal(t, 3993, v.magnitude())
+}
+
+func TestLargestSum20(t *testing.T) {
+	advent.PrintEnabled = false
+	f, err := os.Open("input20")
+	assert.NoError(t, err)
+	v, err := FindLargestMagnitude(f)
+	assert.NoError(t, err)
+	assert.Equal(t, 4807, v.magnitude())
 }
