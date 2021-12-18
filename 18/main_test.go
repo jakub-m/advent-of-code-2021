@@ -94,11 +94,35 @@ func TestReduceAll(t *testing.T) {
 }
 
 func TestInput1(t *testing.T) {
+	f, err := os.Open("input1")
+	assert.NoError(t, err)
+	v, err := CalcSum(f)
+	assert.NoError(t, err)
+	assert.Equal(t, "[[[[1,1],[2,2]],[3,3]],[4,4]]", v.String())
+}
+
+func TestInput2(t *testing.T) {
+	f, err := os.Open("input2")
+	assert.NoError(t, err)
+	v, err := CalcSum(f)
+	assert.NoError(t, err)
+	assert.Equal(t, "[[[[3,0],[5,3]],[4,4]],[5,5]]", v.String())
+}
+
+func TestInput3(t *testing.T) {
+	f, err := os.Open("input3")
+	assert.NoError(t, err)
+	v, err := CalcSum(f)
+	assert.NoError(t, err)
+	assert.Equal(t, "[[[[5,0],[7,4]],[5,5]],[6,6]]", v.String())
+}
+
+func TestInput10(t *testing.T) {
 	f, err := os.Open("input10")
 	assert.NoError(t, err)
-	v, err := CalcSumMagnitude(f)
+	v, err := CalcSum(f)
 	assert.NoError(t, err)
-	assert.Equal(t, 4140, v)
+	assert.Equal(t, "[[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]]", v.String())
 }
 
 // [[1,2],[[3,4],5]] becomes 143.

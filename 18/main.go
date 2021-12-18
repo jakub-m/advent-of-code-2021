@@ -8,30 +8,31 @@ import (
 	"strconv"
 )
 
-func CalcSumMagnitude(r io.Reader) (int, error) {
+func CalcSum(r io.Reader) (node, error) {
 	lines, err := advent.ReadLinesTrim(r)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 
 	current, err := parse(lines[0])
 	if err != nil {
-		return 0, fmt.Errorf("line %s :%s", lines[0], err)
+		return nil, fmt.Errorf("line %s :%s", lines[0], err)
 	}
 	for _, line := range lines[1:] {
 		p, err := parse(line)
 		if err != nil {
-			return 0, fmt.Errorf("line %s :%s", line, err)
+			return nil, fmt.Errorf("line %s :%s", line, err)
 		}
 		newCurrent := &binaryNode{
 			left:  current,
 			right: p,
 		}
 		current = newCurrent
-		// fixParentsAndLevels(current)
+		fixParentsAndLevels(current)
+		reduceAll(current)
 	}
 
-	return 0, nil
+	return current, nil
 }
 
 func parse(str string) (node, error) {
