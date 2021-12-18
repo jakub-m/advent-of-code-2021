@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -115,6 +117,20 @@ func TestInput3(t *testing.T) {
 	v, err := CalcSum(f)
 	assert.NoError(t, err)
 	assert.Equal(t, "[[[[5,0],[7,4]],[5,5]],[6,6]]", v.String())
+}
+
+func TestSum1(t *testing.T) {
+	testSum(t,
+		"[[[0,[4,5]],[0,0]],[[[4,5],[2,6]],[9,5]]]",
+		"[7,[[[3,7],[4,3]],[[6,3],[8,8]]]]",
+		"[[[[4,0],[5,4]],[[7,7],[6,0]]],[[8,[7,7]],[[7,9],[5,0]]]]",
+	)
+}
+
+func testSum(t *testing.T, left, right, expected string) {
+	v, err := CalcSum(strings.NewReader(fmt.Sprintf("%s\n%s", left, right)))
+	assert.NoError(t, err)
+	assert.Equal(t, expected, v.String())
 }
 
 func TestInput10(t *testing.T) {

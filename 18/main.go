@@ -30,6 +30,7 @@ func CalcSum(r io.Reader) (node, error) {
 		current = newCurrent
 		fixParentsAndLevels(current)
 		reduceAll(current)
+		advent.Println(current)
 	}
 
 	return current, nil
@@ -96,7 +97,7 @@ func reduceAll(root node) {
 
 func reduce(root node) bool {
 	// rec return flag if an action was applied.
-	advent.Println("reduce", root)
+	// advent.Println("reduce", root)
 	var rec func(node) bool
 	rec = func(n node) bool {
 		// fmt.Println(n.getLevel(), n, n.getParent())
@@ -105,7 +106,7 @@ func reduce(root node) bool {
 			if ok := shouldExplode(n); ok {
 				leftValue := n.left.(*valueNode)
 				if nodeBefore := findFirstValueBefore(leftValue, root); nodeBefore != nil {
-					advent.Println("node before", nodeBefore)
+					// advent.Println("node before", nodeBefore)
 					nodeBefore.val += leftValue.val
 				}
 				rightValue := n.right.(*valueNode)
