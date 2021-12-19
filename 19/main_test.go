@@ -71,5 +71,5 @@ func TestInput2(t *testing.T) {
 	assert.NoError(t, err)
 	v, err := Calc(f, 12)
 	assert.NoError(t, err)
-	assert.Equal(t, 0, v)
+	assert.Equal(t, 451, v)
 }
