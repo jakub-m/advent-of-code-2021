@@ -24,11 +24,13 @@ func Calc(r io.Reader, threshold int) (int, error) {
 	referenceScanner := scanners[0]
 	otherScanners := scanners[1:]
 
+	vectors := []beacon{}
+
 	for len(otherScanners) > 0 {
 		fmt.Println("other scanners", len(otherScanners))
 		succeededAlign := false
 		for i, candidateScanner := range otherScanners {
-			mergedReference, _, _, ok := alignScanner(referenceScanner, candidateScanner, threshold)
+			mergedReference, _, vec, ok := alignScanner(referenceScanner, candidateScanner, threshold)
 			if !ok {
 				continue
 			}
@@ -42,6 +44,7 @@ func Calc(r io.Reader, threshold int) (int, error) {
 			} else {
 				otherScanners = append(otherScanners[:i], otherScanners[i+1:]...)
 			}
+			vectors = append(vectors, vec)
 			break
 		}
 		if !succeededAlign {
@@ -49,7 +52,7 @@ func Calc(r io.Reader, threshold int) (int, error) {
 		}
 	}
 
-	return len(referenceScanner), nil
+	return findLargestManhattan(vectors), nil
 }
 
 func readScanners(r io.Reader) ([]scanner, error) {
@@ -260,4 +263,21 @@ func mergeScanners(some, other scanner) scanner {
 		merged = append(merged, b)
 	}
 	return merged
+}
+
+func findLargestManhattan(vectors []beacon) int {
+	maxManhattan := 0
+	for _, some := range vectors {
+		for _, other := range vectors {
+			m := manhattan(some, other)
+			if m > maxManhattan {
+				maxManhattan = m
+			}
+		}
+	}
+	return maxManhattan
+}
+
+func manhattan(some, other beacon) int {
+	return advent.AbsInt(some[X]-other[X]) + advent.AbsInt(some[Y]-other[Y]) + advent.AbsInt(some[Z]-other[Z])
 }

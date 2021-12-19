@@ -63,7 +63,7 @@ func TestInput1(t *testing.T) {
 	assert.NoError(t, err)
 	v, err := Calc(f, 12)
 	assert.NoError(t, err)
-	assert.Equal(t, 79, v)
+	assert.Equal(t, 3621, v)
 }
 
 func TestInput2(t *testing.T) {
@@ -71,5 +71,5 @@ func TestInput2(t *testing.T) {
 	assert.NoError(t, err)
 	v, err := Calc(f, 12)
 	assert.NoError(t, err)
-	assert.Equal(t, 451, v)
+	assert.Equal(t, 13184, v)
 }
