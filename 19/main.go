@@ -28,6 +28,9 @@ func Calc(r io.Reader, threshold int) (int, error) {
 		}
 		alignedScanners = append(alignedScanners, aligned)
 	}
+	for _, s := range alignedScanners {
+		fmt.Println(s)
+	}
 
 	return countAllBeacons(alignedScanners), nil
 }
@@ -79,6 +82,10 @@ type transformation func(beacon) beacon
 
 func (b beacon) String() string {
 	return fmt.Sprintf("[%d,%d,%d]", b[X], b[Y], b[Z])
+}
+
+func (b beacon) negative() beacon {
+	return beacon{-b[X], -b[Y], -b[Z]}
 }
 
 func (s scanner) String() string {
@@ -151,16 +158,20 @@ func getRotations(t transformation) []transformation {
 
 func alignScanner(candidate scanner, alignedScanners []scanner, threshold int) (scanner, error) {
 	for _, aligned := range alignedScanners {
-		for _, refBeacon := range aligned {
-			offsetTran := getOffsetTran(refBeacon)
-			alignedWithOffset := aligned.transform(offsetTran)
-			candidateWithOffset := candidate.transform(offsetTran)
+		for _, beaconAligned := range aligned {
+			translateToBeaconAligned := getOffsetTran(beaconAligned)
+			alignedAtZero := aligned.transform(translateToBeaconAligned)
 
 			for _, rot := range rotations {
-				candidateRotated := candidateWithOffset.transform(rot)
-				if scannerOverlap(alignedWithOffset, candidateRotated, threshold) {
-					return candidateRotated, nil
+				candidateRotated := candidate.transform(rot)
+				for _, beaconCandidate := range candidateRotated {
+					translateToBeaconCandidate := getOffsetTran(beaconCandidate)
+					candidateAtZero := candidateRotated.transform(translateToBeaconCandidate)
+					if scannerOverlap(alignedAtZero, candidateAtZero, threshold) {
+						return candidateAtZero.transform(getOffsetTran(beaconAligned.negative())), nil
+					}
 				}
+
 			}
 		}
 	}
