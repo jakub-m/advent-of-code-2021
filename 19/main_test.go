@@ -46,16 +46,16 @@ func TestInput1Piecewise(t *testing.T) {
 	assert.NoError(t, err)
 	scanners, err := readScanners(f)
 	assert.NoError(t, err)
-	assert.True(t, isAligned(scanners[0], scanners[1]), "0 and 1")
-	// assert.True(t, isAligned(scanners[1], scanners[4]), "1 and 4")
+	// assert.True(t, isAligned(scanners[0], scanners[1]), "0 and 1")
+	assert.True(t, isAligned(scanners[1], scanners[4]), "1 and 4")
 	assert.True(t, false)
 }
 
 const defaultThreshold = 12
 
 func isAligned(some, other scanner) bool {
-	_, err := alignScanner(other, []scanner{some}, defaultThreshold)
-	return err == nil
+	_, _, _, ok := alignScanner(some, other, defaultThreshold)
+	return ok
 }
 
 func TestInput1(t *testing.T) {
@@ -64,4 +64,12 @@ func TestInput1(t *testing.T) {
 	v, err := Calc(f, 12)
 	assert.NoError(t, err)
 	assert.Equal(t, 79, v)
+}
+
+func TestInput2(t *testing.T) {
+	f, err := os.Open("input2")
+	assert.NoError(t, err)
+	v, err := Calc(f, 12)
+	assert.NoError(t, err)
+	assert.Equal(t, 0, v)
 }

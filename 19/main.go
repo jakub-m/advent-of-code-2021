@@ -20,19 +20,36 @@ func Calc(r io.Reader, threshold int) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	alignedScanners := []scanner{scanners[0]}
-	for _, scanner := range scanners[1:] {
-		aligned, err := alignScanner(scanner, alignedScanners, threshold)
-		if err != nil {
-			return 0, err
+
+	referenceScanner := scanners[0]
+	otherScanners := scanners[1:]
+
+	for len(otherScanners) > 0 {
+		fmt.Println("other scanners", len(otherScanners))
+		succeededAlign := false
+		for i, candidateScanner := range otherScanners {
+			mergedReference, _, _, ok := alignScanner(referenceScanner, candidateScanner, threshold)
+			if !ok {
+				continue
+			}
+			// fmt.Println("vector", vector)
+			// fmt.Println("overlap", overlap)
+			succeededAlign = true
+			referenceScanner = mergedReference
+			// fmt.Println("length", len(otherScanners), "i", i)
+			if i == len(otherScanners)-1 {
+				otherScanners = otherScanners[:i]
+			} else {
+				otherScanners = append(otherScanners[:i], otherScanners[i+1:]...)
+			}
+			break
 		}
-		alignedScanners = append(alignedScanners, aligned)
-	}
-	for _, s := range alignedScanners {
-		fmt.Println(s)
+		if !succeededAlign {
+			return 0, fmt.Errorf("failed to align")
+		}
 	}
 
-	return countAllBeacons(alignedScanners), nil
+	return len(referenceScanner), nil
 }
 
 func readScanners(r io.Reader) ([]scanner, error) {
@@ -164,31 +181,32 @@ func getRotations(t transformation) []transformation {
 	}
 }
 
-func alignScanner(candidate scanner, alignedScanners []scanner, threshold int) (scanner, error) {
-	for _, aligned := range alignedScanners {
-		for _, beaconAligned := range aligned {
-			translateToBeaconAligned := getOffsetTran(beaconAligned)
-			alignedAtZero := aligned.transform(translateToBeaconAligned)
+func alignScanner(referenceScanner, candidateScanner scanner, threshold int) (scanner, []beacon, beacon, bool) {
+	for _, referenceBeacon := range referenceScanner {
+		translateToReferenceBeacon := getOffsetTran(referenceBeacon)
+		referenceAtZero := referenceScanner.transform(translateToReferenceBeacon)
 
-			for _, rot := range rotations {
-				candidateRotated := candidate.transform(rot)
-				for _, beaconCandidate := range candidateRotated {
-					translateToBeaconCandidate := getOffsetTran(beaconCandidate)
-					candidateAtZero := candidateRotated.transform(translateToBeaconCandidate)
-					if overlap, ok := scannerOverlap(alignedAtZero, candidateAtZero, threshold); ok {
-						baNeg := beaconAligned.negative()
-						counterTran := getOffsetTran(baNeg)
-						fmt.Println("overlap", scanner(overlap).transform(counterTran))
-						fmt.Println("baAlign", beaconAligned, "baCand", beaconCandidate)
-						fmt.Println("baSum", beaconAligned.add(beaconCandidate.negative()))
-						return candidateAtZero.transform(counterTran), nil
-					}
+		for _, rot := range rotations {
+			candidateRotated := candidateScanner.transform(rot)
+			for _, candidateBeacon := range candidateRotated {
+				translateToCandidateBeacon := getOffsetTran(candidateBeacon)
+				candidateAtZero := candidateRotated.transform(translateToCandidateBeacon)
+				if overlap, ok := scannerOverlap(referenceAtZero, candidateAtZero, threshold); ok {
+					baNeg := referenceBeacon.negative()
+					counterTran := getOffsetTran(baNeg)
+					// fmt.Println("overlap", scanner(overlap).transform(counterTran))
+					// fmt.Println("baAlign", referenceBeacon, "baCand", candidateBeacon)
+					vec := referenceBeacon.add(candidateBeacon.negative())
+					merged := mergeScanners(candidateAtZero, referenceAtZero).transform(counterTran)
+					overlap = scanner(overlap).transform(counterTran)
+					// fmt.Println("vec", vec)
+					// fmt.Println("overlap", len(overlap), ":", overlap)
+					return merged, overlap, vec, true
 				}
-
 			}
 		}
 	}
-	return nil, fmt.Errorf("cannot align scanner %v", candidate)
+	return nil, nil, beacon{}, false
 }
 
 func getOffsetTran(ref beacon) transformation {
@@ -226,4 +244,20 @@ func countAllBeacons(scanners []scanner) int {
 		}
 	}
 	return len(m)
+}
+
+func mergeScanners(some, other scanner) scanner {
+	m := make(map[beacon]bool)
+	for _, b := range some {
+		m[b] = true
+	}
+	for _, b := range other {
+		m[b] = true
+	}
+
+	merged := []beacon{}
+	for b := range m {
+		merged = append(merged, b)
+	}
+	return merged
 }
