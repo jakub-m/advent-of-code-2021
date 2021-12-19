@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"testing"
 
@@ -9,6 +10,7 @@ import (
 )
 
 func TestRotations(t *testing.T) {
+	t.Skip()
 	in := trim(`
 -1,-1,1
 -2,-2,2
@@ -18,9 +20,7 @@ func TestRotations(t *testing.T) {
 8,0,7`)
 	scanners, err := readScanners(strings.NewReader(in))
 	assert.NoError(t, err)
-
 	fmt.Println(scanners)
-
 	ref := scanners[0]
 	for _, r := range rotations {
 		transformed := ref.transform(r)
@@ -31,4 +31,12 @@ func TestRotations(t *testing.T) {
 
 func trim(s string) string {
 	return strings.Trim(s, "\n")
+}
+
+func TestInput1(t *testing.T) {
+	f, err := os.Open("input1")
+	assert.NoError(t, err)
+	v, err := Calc(f)
+	assert.NoError(t, err)
+	assert.Equal(t, 79, v)
 }
