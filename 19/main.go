@@ -15,14 +15,14 @@ const (
 	Z = 2
 )
 
-func Calc(r io.Reader) (int, error) {
+func Calc(r io.Reader, threshold int) (int, error) {
 	scanners, err := readScanners(r)
 	if err != nil {
 		return 0, err
 	}
 	alignedScanners := []scanner{scanners[0]}
 	for _, scanner := range scanners[1:] {
-		aligned, err := alignScanner(scanner, alignedScanners)
+		aligned, err := alignScanner(scanner, alignedScanners, threshold)
 		if err != nil {
 			return 0, err
 		}
@@ -46,6 +46,8 @@ func readScanners(r io.Reader) ([]scanner, error) {
 			}
 			currentScanner = scanner{}
 		} else if line == "" {
+			continue
+		} else if strings.HasPrefix(line, "#") {
 			continue
 		} else {
 			beacon, err := lineToBeacon(line)
@@ -147,15 +149,16 @@ func getRotations(t transformation) []transformation {
 	}
 }
 
-func alignScanner(candidate scanner, alignedScanners []scanner) (scanner, error) {
+func alignScanner(candidate scanner, alignedScanners []scanner, threshold int) (scanner, error) {
 	for _, aligned := range alignedScanners {
+
 		for _, tran := range rotations {
 			transformedCandidate := candidate.transform(tran)
 			for _, refBeacon := range aligned {
 				offsetTran := getOffsetTran(refBeacon)
 				offsetCandidate := transformedCandidate.transform(offsetTran)
 
-				if scannerOverlap(offsetCandidate, aligned) {
+				if scannerOverlap(offsetCandidate, aligned, threshold) {
 					return offsetCandidate, nil
 				}
 			}
@@ -174,7 +177,7 @@ func getOffsetTran(ref beacon) transformation {
 	}
 }
 
-func scannerOverlap(some, other scanner) bool {
+func scannerOverlap(some, other scanner, threshold int) bool {
 	m := make(map[beacon]int)
 	for _, b := range some {
 		m[b]++
@@ -188,7 +191,8 @@ func scannerOverlap(some, other scanner) bool {
 			countOverlapping++
 		}
 	}
-	return countOverlapping >= 12
+	fmt.Println("overlap", m)
+	return countOverlapping >= threshold
 }
 
 func countAllBeacons(scanners []scanner) int {

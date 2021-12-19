@@ -29,6 +29,14 @@ func TestRotations(t *testing.T) {
 	assert.Equal(t, 1, 2)
 }
 
+func TestSimple(t *testing.T) {
+	f, err := os.Open("inputIdent1")
+	assert.NoError(t, err)
+	v, err := Calc(f, 6)
+	assert.NoError(t, err)
+	assert.Equal(t, 6, v)
+}
+
 func trim(s string) string {
 	return strings.Trim(s, "\n")
 }
@@ -36,7 +44,7 @@ func trim(s string) string {
 func TestInput1(t *testing.T) {
 	f, err := os.Open("input1")
 	assert.NoError(t, err)
-	v, err := Calc(f)
+	v, err := Calc(f, 12)
 	assert.NoError(t, err)
 	assert.Equal(t, 79, v)
 }
