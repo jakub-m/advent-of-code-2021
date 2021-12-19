@@ -127,6 +127,7 @@ func chain(transformations ...transformation) transformation {
 // b, -a, c,
 
 func init() {
+	// returns 64 rotations but 24 would be enough
 	for _, x := range getRotations(rotX) {
 		for _, y := range getRotations(rotY) {
 			for _, z := range getRotations(rotZ) {
