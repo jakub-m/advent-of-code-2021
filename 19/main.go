@@ -151,15 +151,15 @@ func getRotations(t transformation) []transformation {
 
 func alignScanner(candidate scanner, alignedScanners []scanner, threshold int) (scanner, error) {
 	for _, aligned := range alignedScanners {
+		for _, refBeacon := range aligned {
+			offsetTran := getOffsetTran(refBeacon)
+			alignedWithOffset := aligned.transform(offsetTran)
+			candidateWithOffset := candidate.transform(offsetTran)
 
-		for _, tran := range rotations {
-			transformedCandidate := candidate.transform(tran)
-			for _, refBeacon := range aligned {
-				offsetTran := getOffsetTran(refBeacon)
-				offsetCandidate := transformedCandidate.transform(offsetTran)
-
-				if scannerOverlap(offsetCandidate, aligned, threshold) {
-					return offsetCandidate, nil
+			for _, rot := range rotations {
+				candidateRotated := candidateWithOffset.transform(rot)
+				if scannerOverlap(alignedWithOffset, candidateRotated, threshold) {
+					return candidateRotated, nil
 				}
 			}
 		}
