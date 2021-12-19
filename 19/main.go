@@ -81,11 +81,19 @@ type beacon [3]int
 type transformation func(beacon) beacon
 
 func (b beacon) String() string {
-	return fmt.Sprintf("[%d,%d,%d]", b[X], b[Y], b[Z])
+	return fmt.Sprintf("%d,%d,%d", b[X], b[Y], b[Z])
 }
 
 func (b beacon) negative() beacon {
 	return beacon{-b[X], -b[Y], -b[Z]}
+}
+
+func (b beacon) add(o beacon) beacon {
+	return beacon{
+		b[X] + o[X],
+		b[Y] + o[Y],
+		b[Z] + o[Z],
+	}
 }
 
 func (s scanner) String() string {
@@ -167,8 +175,13 @@ func alignScanner(candidate scanner, alignedScanners []scanner, threshold int) (
 				for _, beaconCandidate := range candidateRotated {
 					translateToBeaconCandidate := getOffsetTran(beaconCandidate)
 					candidateAtZero := candidateRotated.transform(translateToBeaconCandidate)
-					if scannerOverlap(alignedAtZero, candidateAtZero, threshold) {
-						return candidateAtZero.transform(getOffsetTran(beaconAligned.negative())), nil
+					if overlap, ok := scannerOverlap(alignedAtZero, candidateAtZero, threshold); ok {
+						baNeg := beaconAligned.negative()
+						counterTran := getOffsetTran(baNeg)
+						fmt.Println("overlap", scanner(overlap).transform(counterTran))
+						fmt.Println("baAlign", beaconAligned, "baCand", beaconCandidate)
+						fmt.Println("baSum", beaconAligned.add(beaconCandidate.negative()))
+						return candidateAtZero.transform(counterTran), nil
 					}
 				}
 
@@ -188,7 +201,7 @@ func getOffsetTran(ref beacon) transformation {
 	}
 }
 
-func scannerOverlap(some, other scanner, threshold int) bool {
+func scannerOverlap(some, other scanner, threshold int) ([]beacon, bool) {
 	m := make(map[beacon]int)
 	for _, b := range some {
 		m[b]++
@@ -196,14 +209,13 @@ func scannerOverlap(some, other scanner, threshold int) bool {
 	for _, b := range other {
 		m[b]++
 	}
-	countOverlapping := 0
-	for _, v := range m {
+	overlappingBeacons := []beacon{}
+	for b, v := range m {
 		if v == 2 {
-			countOverlapping++
+			overlappingBeacons = append(overlappingBeacons, b)
 		}
 	}
-	fmt.Println("overlap", m)
-	return countOverlapping >= threshold
+	return overlappingBeacons, len(overlappingBeacons) >= threshold
 }
 
 func countAllBeacons(scanners []scanner) int {

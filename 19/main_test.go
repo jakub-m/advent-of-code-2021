@@ -41,6 +41,23 @@ func trim(s string) string {
 	return strings.Trim(s, "\n")
 }
 
+func TestInput1Piecewise(t *testing.T) {
+	f, err := os.Open("input1")
+	assert.NoError(t, err)
+	scanners, err := readScanners(f)
+	assert.NoError(t, err)
+	assert.True(t, isAligned(scanners[0], scanners[1]), "0 and 1")
+	// assert.True(t, isAligned(scanners[1], scanners[4]), "1 and 4")
+	assert.True(t, false)
+}
+
+const defaultThreshold = 12
+
+func isAligned(some, other scanner) bool {
+	_, err := alignScanner(other, []scanner{some}, defaultThreshold)
+	return err == nil
+}
+
 func TestInput1(t *testing.T) {
 	f, err := os.Open("input1")
 	assert.NoError(t, err)
