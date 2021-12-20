@@ -6,13 +6,14 @@ import (
 	"io"
 )
 
+const Enhancements = 50
+
 func Calc(r io.Reader) (int, error) {
 	mask, board := parseInput(r)
-	// fmt.Println(board)
-	board = enhance(board, mask)
-	// fmt.Println(board)
-	board = enhance(board, mask)
-	// fmt.Println(board)
+	for i := 0; i < Enhancements; i++ {
+		board = enhance(board, mask)
+	}
+	fmt.Println(board)
 	return board.countLitPixels(), nil
 }
 
