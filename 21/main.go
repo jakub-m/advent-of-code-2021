@@ -2,58 +2,209 @@ package main
 
 import "fmt"
 
-func Calc(pos1, pos2 int) (int, error) {
-	player1 := position(pos1)
-	player2 := position(pos2)
-	score1, score2 := 0, 0
-	roll := 1
-	losingScore := 0
-	nRolls := 0
-	for {
-		roll1, sum := rollTimes(roll, 3)
-		fmt.Println("roll state", roll1, "sum", sum)
-		nRolls += 3
-		roll = roll1
-		player1.move(sum)
-		score1 += int(player1)
-		fmt.Println("player1 pos", player1, "score", score1)
-		if score1 >= 1000 {
-			losingScore = score2
-			break
-		}
+// a special value
+const startDiceResult = 0
+const winThreshold = 21
+const totalFields = 10
 
-		roll2, sum := rollTimes(roll, 3)
-		fmt.Println("roll state", roll1, "sum", sum)
-		nRolls += 3
-		roll = roll2
-		player2.move(sum)
-		score2 += int(player2)
-		fmt.Println("player2 pos", player2, "score", score2)
-		if score2 >= 1000 {
-			losingScore = score1
-			break
+func Calc(pos1, pos2 uint8) (int, error) {
+
+	start := universeState{
+		a: state{scoreSoFar: 0, field: pos1, combinations: 1},
+		b: state{scoreSoFar: 0, field: pos2, combinations: 1},
+	}
+
+	backlog := []backlogItem{
+		{
+			diceResultSum: startDiceResult,
+			rollingPlayer: playerNone,
+			universeState: start,
+		},
+	}
+
+	totalUniversesWinsA, totalUniversesWinsB := 0, 0
+	for len(backlog) > 0 {
+		last := &backlog[len(backlog)-1]
+		scoreSoFarA := last.universeState.a.scoreSoFar
+		scoreSoFarB := last.universeState.b.scoreSoFar
+		if scoreSoFarA >= winThreshold {
+			// "a" wins
+			totalUniversesWinsA += last.universeState.a.combinations
+			// remove the last element from the backlog and add the new one.
+			// trim backlog
+			backlog = iterateBacklog(backlog)
+		} else if scoreSoFarB >= winThreshold {
+			// "b" wins
+			totalUniversesWinsB += last.universeState.b.combinations
+			backlog = iterateBacklog(backlog)
+		} else if scoreSoFarA >= winThreshold && scoreSoFarB >= winThreshold {
+			panic(fmt.Sprintf("both cannot win: %v", backlog))
+		} else {
+			// nobody wins, enlarge the backlog
+			backlog = enlargeBacklog(backlog)
 		}
 	}
-	return losingScore * nRolls, nil
+
+	if totalUniversesWinsA > totalUniversesWinsB {
+		return totalUniversesWinsA, nil
+	} else {
+		return totalUniversesWinsB, nil
+	}
 }
 
-func rollTimes(roll, times int) (int, int) {
-	s := 0
-	for i := 0; i < times; i++ {
-		s += roll
-		roll++
-		if roll > 100 {
-			roll = 1
+type backlogItem struct {
+	diceResultSum uint8
+	rollingPlayer player
+	universeState universeState
+}
+
+type universeState struct {
+	a, b state
+}
+
+func (s universeState) String() string {
+	return fmt.Sprintf("[a %s, b %s]", s.a, s.b)
+}
+
+type state struct {
+	scoreSoFar int
+	field      uint8
+	// not a state "per se", but a product of the combinations that led to this state
+	combinations int
+}
+
+func (s state) String() string {
+	return fmt.Sprintf("s:%d, f:%d", s.scoreSoFar, s.field)
+}
+
+type player uint8
+
+func (p player) otherPlayer() player {
+	if p == playerA {
+		return playerB
+	} else if p == playerB {
+		return playerA
+	} else {
+		panic(fmt.Sprint("wrong player?", p))
+	}
+}
+
+const (
+	playerNone player = 0
+	playerA    player = 1
+	playerB    player = 2
+)
+
+func iterateBacklog(backlog []backlogItem) []backlogItem {
+	// remove the current element and add a next element. If cannot add next, then remove the previous element and try to add the
+	last := backlog[len(backlog)-1]
+	trimmedBacklog := backlog[:len(backlog)-1]
+
+	if last.diceResultSum == startDiceResult {
+		if len(trimmedBacklog) > 0 {
+			panic(fmt.Sprintf("at start but trimmed backlog is not empty: %v", trimmedBacklog))
+		}
+		return trimmedBacklog
+	} else if last.diceResultSum >= 3 && last.diceResultSum < 9 {
+		newDiceResultSum := last.diceResultSum + 1
+		newRollingPlayer := last.rollingPlayer.otherPlayer()
+		newUniverseState := last.universeState
+
+		if newRollingPlayer == playerA {
+			newUniverseState.a = stateForNewRoll(newUniverseState.a, newDiceResultSum)
+		} else if newRollingPlayer == playerB {
+			newUniverseState.b = stateForNewRoll(newUniverseState.b, newDiceResultSum)
+		} else {
+			panic(fmt.Sprint("rolling player?", newRollingPlayer))
+		}
+
+		newHead := backlogItem{
+			diceResultSum: newDiceResultSum,
+			rollingPlayer: newRollingPlayer,
+			universeState: newUniverseState,
+		}
+		trimmedBacklog = append(trimmedBacklog, newHead)
+		return trimmedBacklog
+
+	} else if last.diceResultSum == 9 {
+		return iterateBacklog(trimmedBacklog)
+
+	} else {
+		panic(fmt.Sprint("unexpected dice result: ", last))
+	}
+}
+
+func universeStateForNewRoll(u universeState, rollSum uint8, rollingPlayer player) universeState {
+	if rollingPlayer == playerA {
+		u.a = stateForNewRoll(u.a, rollSum)
+		return u
+	} else if rollingPlayer == playerB {
+		u.b = stateForNewRoll(u.b, rollSum)
+		return u
+	} else {
+		panic(fmt.Sprint("rolling player?", rollingPlayer))
+	}
+}
+
+func stateForNewRoll(s state, roll uint8) state {
+	newField := newFieldForRoll(s.field, roll)
+	s.field = newField
+	s.scoreSoFar += int(newField)
+	s.combinations *= combinationsForRoll(roll)
+	return s
+}
+
+func newFieldForRoll(field, roll uint8) uint8 {
+	s := field + roll
+	if s > totalFields {
+		s = s - 10
+	}
+
+	if s > totalFields {
+		panic(fmt.Sprint("field or roll out of bound: ", field, roll))
+	}
+
+	return s
+}
+
+var combinationsForRollTable []int
+
+func init() {
+	combinationsForRollTable = make([]int, 10)
+	for i := 1; i <= 3; i++ {
+		for j := 1; j <= 3; j++ {
+			for k := 1; k <= 3; k++ {
+				v := i + j + k
+				combinationsForRollTable[v]++
+			}
 		}
 	}
-	return roll, s
 }
 
-type position int
+func combinationsForRoll(roll uint8) int {
+	if roll < 3 || roll > 9 {
+		panic(fmt.Sprint("incorrect roll", roll))
+	}
+	return combinationsForRollTable[roll]
+}
 
-const ringSize = 10
+func enlargeBacklog(backlog []backlogItem) []backlogItem {
+	last := backlog[len(backlog)-1]
+	newRoll := uint8(3)
 
-func (p *position) move(n int) {
-	pi := int(*p)
-	*p = position((pi-1+n)%ringSize + 1)
+	var newPlayer player
+	if len(backlog) == 1 {
+		newPlayer = playerA
+	} else {
+		newPlayer = last.rollingPlayer.otherPlayer()
+	}
+
+	newUniverseState := universeStateForNewRoll(last.universeState, newRoll, newPlayer)
+	newItem := backlogItem{
+		diceResultSum: newRoll,
+		rollingPlayer: newPlayer,
+		universeState: newUniverseState,
+	}
+	backlog = append(backlog, newItem)
+	return backlog
 }
