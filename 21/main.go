@@ -29,6 +29,10 @@ func Calc(pos1, pos2 uint8) (int, error) {
 
 	totalUniversesWinsA, totalUniversesWinsB := 0, 0
 	for len(backlog) > 0 {
+		if len(backlog) <= 2 {
+			fmt.Println(backlog)
+		}
+
 		last := backlog[len(backlog)-1]
 		scoreSoFarA := last.universeState.a.scoreSoFar
 		scoreSoFarB := last.universeState.b.scoreSoFar
@@ -86,7 +90,7 @@ type state struct {
 }
 
 func (s state) String() string {
-	return fmt.Sprintf("s:%d f:%d", s.scoreSoFar, s.field)
+	return fmt.Sprintf("f:%d s:%d", s.field, s.scoreSoFar)
 }
 
 type player uint8
@@ -193,7 +197,7 @@ func init() {
 			}
 		}
 	}
-	fmt.Println("combinationsForRollTable", combinationsForRollTable)
+	advent.Println("combinationsForRollTable", combinationsForRollTable)
 }
 
 func combinationsForRoll(roll uint8) int {
