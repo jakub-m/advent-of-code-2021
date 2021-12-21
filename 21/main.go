@@ -14,8 +14,9 @@ const totalFields = 10
 func Calc(pos1, pos2 uint8) (int, error) {
 
 	start := universeState{
-		a: state{scoreSoFar: 0, field: pos1, combinations: 1},
-		b: state{scoreSoFar: 0, field: pos2, combinations: 1},
+		combinations: 1,
+		a:            state{scoreSoFar: 0, field: pos1},
+		b:            state{scoreSoFar: 0, field: pos2},
 	}
 
 	backlog := []backlogItem{
@@ -32,17 +33,17 @@ func Calc(pos1, pos2 uint8) (int, error) {
 		scoreSoFarA := last.universeState.a.scoreSoFar
 		scoreSoFarB := last.universeState.b.scoreSoFar
 		if advent.PrintEnabled {
-			advent.Printf("%s (%d, %d)\n", backlogAsString(backlog), scoreSoFarA, scoreSoFarB)
+			advent.Printf("%s (%d, %d)\n", backlogAsString(backlog), totalUniversesWinsA, totalUniversesWinsB)
 		}
 		if scoreSoFarA >= winThreshold {
 			// "a" wins
-			totalUniversesWinsA += last.universeState.a.combinations
+			totalUniversesWinsA += last.universeState.combinations
 			// remove the last element from the backlog and add the new one.
 			// trim backlog
 			backlog = iterateBacklog(backlog)
 		} else if scoreSoFarB >= winThreshold {
 			// "b" wins
-			totalUniversesWinsB += last.universeState.b.combinations
+			totalUniversesWinsB += last.universeState.combinations
 			backlog = iterateBacklog(backlog)
 		} else if scoreSoFarA >= winThreshold && scoreSoFarB >= winThreshold {
 			panic(fmt.Sprintf("both cannot win: %v", backlog))
@@ -71,21 +72,21 @@ func (b backlogItem) String() string {
 
 type universeState struct {
 	a, b state
+	// not a state "per se", but a product of the combinations that led to this state
+	combinations int
 }
 
 func (s universeState) String() string {
-	return fmt.Sprintf("[a %s, b %s]", s.a, s.b)
+	return fmt.Sprintf("[A %s, B %s, c:%d]", s.a, s.b, s.combinations)
 }
 
 type state struct {
 	scoreSoFar int
 	field      uint8
-	// not a state "per se", but a product of the combinations that led to this state
-	combinations int
 }
 
 func (s state) String() string {
-	return fmt.Sprintf("s:%d, f:%d", s.scoreSoFar, s.field)
+	return fmt.Sprintf("s:%d f:%d", s.scoreSoFar, s.field)
 }
 
 type player uint8
@@ -108,23 +109,25 @@ const (
 
 func iterateBacklog(backlog []backlogItem) []backlogItem {
 	// remove the current element and add a next element. If cannot add next, then remove the previous element and try to add the
-	last := backlog[len(backlog)-1]
+	previousHead := backlog[len(backlog)-1]
 	trimmedBacklog := backlog[:len(backlog)-1]
 
-	if last.diceResultSum == startDiceResult {
+	if previousHead.diceResultSum == startDiceResult {
 		if len(trimmedBacklog) > 0 {
 			panic(fmt.Sprintf("at start but trimmed backlog is not empty: %v", trimmedBacklog))
 		}
 		return trimmedBacklog
-	} else if last.diceResultSum >= 3 && last.diceResultSum < 9 {
-		newDiceResultSum := last.diceResultSum + 1
-		newRollingPlayer := last.rollingPlayer.otherPlayer()
-		newUniverseState := last.universeState
+	} else if previousHead.diceResultSum >= 3 && previousHead.diceResultSum < 9 {
+		trimmedPreviousHead := trimmedBacklog[len(trimmedBacklog)-1]
+		newDiceResultSum := previousHead.diceResultSum + 1
+		newRollingPlayer := previousHead.rollingPlayer
+		newUniverseState := previousHead.universeState
 
+		newUniverseState.combinations = trimmedPreviousHead.universeState.combinations * combinationsForRoll(newDiceResultSum)
 		if newRollingPlayer == playerA {
-			newUniverseState.a = stateForNewRoll(newUniverseState.a, newDiceResultSum)
+			newUniverseState.a = stateForNewRoll(trimmedPreviousHead.universeState.a, newDiceResultSum)
 		} else if newRollingPlayer == playerB {
-			newUniverseState.b = stateForNewRoll(newUniverseState.b, newDiceResultSum)
+			newUniverseState.b = stateForNewRoll(trimmedPreviousHead.universeState.b, newDiceResultSum)
 		} else {
 			panic(fmt.Sprint("rolling player?", newRollingPlayer))
 		}
@@ -137,32 +140,32 @@ func iterateBacklog(backlog []backlogItem) []backlogItem {
 		trimmedBacklog = append(trimmedBacklog, newHead)
 		return trimmedBacklog
 
-	} else if last.diceResultSum == 9 {
+	} else if previousHead.diceResultSum == 9 {
 		return iterateBacklog(trimmedBacklog)
 
 	} else {
-		panic(fmt.Sprint("unexpected dice result: ", last))
+		panic(fmt.Sprint("unexpected dice result: ", previousHead))
 	}
 }
 
-func universeStateForNewRoll(u universeState, rollSum uint8, rollingPlayer player) universeState {
+func universeStateForNewRoll(previous universeState, rollSum uint8, rollingPlayer player) universeState {
+	previous.combinations *= combinationsForRoll(rollSum)
 	if rollingPlayer == playerA {
-		u.a = stateForNewRoll(u.a, rollSum)
-		return u
+		previous.a = stateForNewRoll(previous.a, rollSum)
+		return previous
 	} else if rollingPlayer == playerB {
-		u.b = stateForNewRoll(u.b, rollSum)
-		return u
+		previous.b = stateForNewRoll(previous.b, rollSum)
+		return previous
 	} else {
 		panic(fmt.Sprint("rolling player?", rollingPlayer))
 	}
 }
 
-func stateForNewRoll(s state, roll uint8) state {
-	newField := newFieldForRoll(s.field, roll)
-	s.field = newField
-	s.scoreSoFar += int(newField)
-	s.combinations *= combinationsForRoll(roll)
-	return s
+func stateForNewRoll(previous state, roll uint8) state {
+	newField := newFieldForRoll(previous.field, roll)
+	previous.field = newField
+	previous.scoreSoFar += int(newField)
+	return previous
 }
 
 func newFieldForRoll(field, roll uint8) uint8 {
@@ -190,6 +193,7 @@ func init() {
 			}
 		}
 	}
+	fmt.Println("combinationsForRollTable", combinationsForRollTable)
 }
 
 func combinationsForRoll(roll uint8) int {
