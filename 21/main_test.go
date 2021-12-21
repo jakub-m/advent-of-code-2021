@@ -15,6 +15,7 @@ func TestCalc1(t *testing.T) {
 }
 
 func TestCalc2(t *testing.T) {
+	advent.PrintEnabled = false
 	v, err := Calc(4, 3)
 	assert.NoError(t, err)
 	assert.Equal(t, 734820, v)
