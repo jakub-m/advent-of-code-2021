@@ -1,6 +1,10 @@
 package main
 
-import "fmt"
+import (
+	"advent"
+	"fmt"
+	"strings"
+)
 
 // a special value
 const startDiceResult = 0
@@ -24,9 +28,12 @@ func Calc(pos1, pos2 uint8) (int, error) {
 
 	totalUniversesWinsA, totalUniversesWinsB := 0, 0
 	for len(backlog) > 0 {
-		last := &backlog[len(backlog)-1]
+		last := backlog[len(backlog)-1]
 		scoreSoFarA := last.universeState.a.scoreSoFar
 		scoreSoFarB := last.universeState.b.scoreSoFar
+		if advent.PrintEnabled {
+			advent.Printf("%s (%d, %d)\n", backlogAsString(backlog), scoreSoFarA, scoreSoFarB)
+		}
 		if scoreSoFarA >= winThreshold {
 			// "a" wins
 			totalUniversesWinsA += last.universeState.a.combinations
@@ -56,6 +63,10 @@ type backlogItem struct {
 	diceResultSum uint8
 	rollingPlayer player
 	universeState universeState
+}
+
+func (b backlogItem) String() string {
+	return fmt.Sprintf("r:%d p:%d %s", b.diceResultSum, b.rollingPlayer, b.universeState)
 }
 
 type universeState struct {
@@ -207,4 +218,12 @@ func enlargeBacklog(backlog []backlogItem) []backlogItem {
 	}
 	backlog = append(backlog, newItem)
 	return backlog
+}
+
+func backlogAsString(backlog []backlogItem) string {
+	s := []string{}
+	for _, b := range backlog {
+		s = append(s, b.String())
+	}
+	return strings.Join(s, " | ")
 }
