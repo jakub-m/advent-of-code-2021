@@ -14,3 +14,11 @@ func TestCalc1(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 590784, v)
 }
+
+func TestCalc2(t *testing.T) {
+	f, err := os.Open("input2")
+	assert.NoError(t, err)
+	v, err := Calc(f)
+	assert.NoError(t, err)
+	assert.Equal(t, 543306, v)
+}

@@ -117,4 +117,5 @@ func trim(c cuboid) cuboid {
 	if c.zz.endInc > 50 {
 		c.zz.endInc = 50
 	}
+	return c
 }
