@@ -24,9 +24,9 @@ func Calc(r io.Reader) (int, error) {
 
 	for _, c := range commands {
 		cub := trim(c.cuboid)
-		for x := cub.xx.startInc; x <= cub.xx.endInc; x++ {
-			for y := cub.yy.startInc; y <= cub.yy.endInc; y++ {
-				for z := cub.zz.startInc; z <= cub.zz.endInc; z++ {
+		for x := cub.xx.startInc; x < cub.xx.endExc; x++ {
+			for y := cub.yy.startInc; y < cub.yy.endExc; y++ {
+				for z := cub.zz.startInc; z < cub.zz.endExc; z++ {
 					p := xyz{x, y, z}
 					if _, ok := reactor[p]; ok {
 						reactor[p] = c.onOff
@@ -68,11 +68,11 @@ func parseInput(r io.Reader) ([]command, error) {
 			panic("line" + line)
 		}
 		c.cuboid.xx.startInc = advent.Atoi(m[2])
-		c.cuboid.xx.endInc = advent.Atoi(m[3])
+		c.cuboid.xx.endExc = advent.Atoi(m[3]) + 1
 		c.cuboid.yy.startInc = advent.Atoi(m[4])
-		c.cuboid.yy.endInc = advent.Atoi(m[5])
+		c.cuboid.yy.endExc = advent.Atoi(m[5]) + 1
 		c.cuboid.zz.startInc = advent.Atoi(m[6])
-		c.cuboid.zz.endInc = advent.Atoi(m[7])
+		c.cuboid.zz.endExc = advent.Atoi(m[7]) + 1
 		commands = append(commands, c)
 	}
 	return commands, nil
@@ -94,7 +94,8 @@ type xyz struct {
 }
 
 type intRange struct {
-	startInc, endInc int
+	startInc int
+	endExc   int
 }
 
 func trim(c cuboid) cuboid {
@@ -108,14 +109,14 @@ func trim(c cuboid) cuboid {
 		c.zz.startInc = -50
 	}
 
-	if c.xx.endInc > 50 {
-		c.xx.endInc = 50
+	if c.xx.endExc > 51 {
+		c.xx.endExc = 52
 	}
-	if c.yy.endInc > 50 {
-		c.yy.endInc = 50
+	if c.yy.endExc > 52 {
+		c.yy.endExc = 51
 	}
-	if c.zz.endInc > 50 {
-		c.zz.endInc = 50
+	if c.zz.endExc > 51 {
+		c.zz.endExc = 51
 	}
 	return c
 }
