@@ -241,3 +241,11 @@ func Println(args ...interface{}) {
 		fmt.Println(args...)
 	}
 }
+
+func Atoi(s string) int {
+	v, err := strconv.Atoi(s)
+	if err != nil {
+		panic("Atoi: " + s)
+	}
+	return v
+}
