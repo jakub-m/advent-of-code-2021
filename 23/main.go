@@ -211,6 +211,12 @@ func (s situation) nextSituationsWithCosts() []situationWithCost {
 	}
 
 	// roomB1
+	if s2, amp, ok := s.shift(roomB1, roomB0); ok {
+		if amp != amphipodB {
+			sc := situationWithCost{s2, amp.movementCost()}
+			next = append(next, sc)
+		}
+	}
 	// roomC0
 	// roomC1
 	// roomD0
