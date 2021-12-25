@@ -13,8 +13,12 @@ const (
 func Calc() (int, error) {
 	burrowWithAmphoids := initialBurrowWithAmphoids()
 	fmt.Println(burrowWithAmphoids)
-	m := getMinimumEnergy(burrowWithAmphoids, make(map[situation]bool))
-	return m, nil
+	//m := getMinimumEnergy(burrowWithAmphoids, make(map[situation]bool))
+	for _, sc := range burrowWithAmphoids.nextSituationsWithCosts() {
+		fmt.Println()
+		fmt.Println(sc.situation)
+	}
+	return 0, nil
 }
 
 func getMinimumEnergy(burrowWithAmphoids situation, alreadyConsideredStates map[situation]bool) int {
@@ -25,36 +29,15 @@ func getMinimumEnergy(burrowWithAmphoids situation, alreadyConsideredStates map[
 		}
 	}
 
-	terminal, nonTerminal := []situationWithCost{}, []situationWithCost{}
-
+	updatedConsideredStates := cloneConsideredStates(alreadyConsideredStates)
+	updatedConsideredStates[burrowWithAmphoids] = true
+	nextCosts := []int{}
 	for _, sc := range possibleNextStates {
-		if sc.isTerminal {
-			terminal = append(terminal, sc)
-		} else {
-			nonTerminal = append(nonTerminal, sc)
-		}
+		nextCost := sc.cost + getMinimumEnergy(sc.situation, updatedConsideredStates)
+		nextCosts = append(nextCosts, nextCost)
 	}
+	return advent.MinInt(nextCosts)
 
-	if len(terminal) > 0 {
-		minCost := MaxInt
-		for _, sc := range terminal {
-			if sc.cost < minCost {
-				minCost = sc.cost
-			}
-		}
-		return minCost // TODO here terminal might not be true if amphoid is in the first of two fields of its destinatin room
-	} else if len(nonTerminal) > 0 {
-		updatedConsideredStates := cloneConsideredStates(alreadyConsideredStates)
-		updatedConsideredStates[burrowWithAmphoids] = true
-		nextCosts := []int{}
-		for _, sc := range nonTerminal {
-			nextCost := sc.cost + getMinimumEnergy(sc.situation, updatedConsideredStates)
-			nextCosts = append(nextCosts, nextCost)
-		}
-		return advent.MinInt(nextCosts)
-	}
-
-	panic("no terminal and no non-termianl states")
 }
 
 type situation [burrowSize]fieldState
@@ -126,28 +109,95 @@ func initialBurrowWithAmphoids() situation {
 func (s situation) nextSituationsWithCosts() []situationWithCost {
 	next := []situationWithCost{}
 
-	if t := s[roomLeft1]; t != emptyField {
-		if o := s[roomLeft0]; o == emptyField {
-			s2 := s
-			s2[roomLeft1] = emptyField
-			s2[roomLeft0] = t
-			sc := situationWithCost{s2, t.movementCost(), false}
+	// roomLeft1
+	if s2, amp, ok := s.shift(roomLeft1, roomLeft0); ok {
+		sc := situationWithCost{s2, amp.movementCost()}
+		next = append(next, sc)
+	}
+
+	// roomLeft0
+	if s2, amp, ok := s.shift(roomLeft0, roomLeft1); ok {
+		sc := situationWithCost{s2, amp.movementCost()}
+		next = append(next, sc)
+	}
+
+	if s2, amp, ok := s.shift(roomLeft0, hallAB); ok {
+		sc := situationWithCost{s2, 2 * amp.movementCost()}
+		next = append(next, sc)
+	}
+
+	if s2, amp, ok := s.shift(roomLeft0, roomA0); ok {
+		if amp == amphipodA {
+			sc := situationWithCost{s2, 2 * amp.movementCost()}
 			next = append(next, sc)
 		}
 	}
 
-	// todo here roomLeft0
-
-	if t := s[roomA0]; t != emptyField {
-		if o := s[roomLeft0]; o == emptyField {
-			s2 := s
-			s2[roomA0] = emptyField
-			s2[roomLeft0] = t
-			sc := situationWithCost{s2, 2 * t.movementCost(), false}
+	// roomA0
+	if s2, amp, ok := s.shift(roomA0, roomLeft0); ok {
+		if amp != amphipodA {
+			sc := situationWithCost{s2, 2 * amp.movementCost()}
 			next = append(next, sc)
 		}
-
 	}
+
+	if s2, amp, ok := s.shift(roomA0, hallAB); ok {
+		if amp != amphipodA {
+			sc := situationWithCost{s2, 2 * amp.movementCost()}
+			next = append(next, sc)
+		}
+	}
+
+	if s2, amp, ok := s.shift(roomA0, roomA1); ok {
+		if amp == amphipodA {
+			sc := situationWithCost{s2, amp.movementCost()}
+			next = append(next, sc)
+		}
+	}
+
+	// roomA1
+	if s2, amp, ok := s.shift(roomA1, roomA0); ok {
+		if amp != amphipodA {
+			sc := situationWithCost{s2, amp.movementCost()}
+			next = append(next, sc)
+		}
+	}
+
+	// hallAB
+	if s2, amp, ok := s.shift(hallAB, roomLeft0); ok {
+		sc := situationWithCost{s2, 2 * amp.movementCost()}
+		next = append(next, sc)
+	}
+
+	if s2, amp, ok := s.shift(hallAB, hallBC); ok {
+		sc := situationWithCost{s2, 2 * amp.movementCost()}
+		next = append(next, sc)
+	}
+
+	if s2, amp, ok := s.shift(hallAB, roomA0); ok {
+		if amp == amphipodA {
+			sc := situationWithCost{s2, 2 * amp.movementCost()}
+			next = append(next, sc)
+		}
+	}
+
+	if s2, amp, ok := s.shift(hallAB, roomB0); ok {
+		if amp == amphipodB {
+			sc := situationWithCost{s2, 2 * amp.movementCost()}
+			next = append(next, sc)
+		}
+	}
+
+	// roomB0
+	// roomB1
+	// roomC0
+	// roomC1
+	// roomD0
+	// roomD1
+	// roomRight0
+	// roomRight1
+	// hallBC
+	// hallCD
 
 	// todo move inside destination
 	// todo return 0 on final position
@@ -168,8 +218,21 @@ func (s situation) nextSituationsWithCosts() []situationWithCost {
 	// 	}
 	// }
 
-	// here
-	// return next
+	return next
+}
+
+func (s situation) shift(start, end burrowIndex) (situation, fieldState, bool) {
+	this := s[start]
+	if this == emptyField {
+		return s, this, false
+	}
+	other := s[end]
+	if other != emptyField {
+		return s, this, false
+	}
+	s2 := s
+	s2[start], s2[end] = s2[end], s2[start]
+	return s2, this, true
 }
 
 func cloneConsideredStates(m map[situation]bool) map[situation]bool {
@@ -181,9 +244,8 @@ func cloneConsideredStates(m map[situation]bool) map[situation]bool {
 }
 
 type situationWithCost struct {
-	situation  situation
-	cost       int
-	isTerminal bool
+	situation situation
+	cost      int
 }
 
 type burrowIndex int
