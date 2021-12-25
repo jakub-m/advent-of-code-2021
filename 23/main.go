@@ -189,6 +189,27 @@ func (s situation) nextSituationsWithCosts() []situationWithCost {
 	}
 
 	// roomB0
+	if s2, amp, ok := s.shift(roomB0, hallAB); ok {
+		if amp != amphipodB {
+			sc := situationWithCost{s2, 2 * amp.movementCost()}
+			next = append(next, sc)
+		}
+	}
+
+	if s2, amp, ok := s.shift(roomB0, hallBC); ok {
+		if amp != amphipodB {
+			sc := situationWithCost{s2, 2 * amp.movementCost()}
+			next = append(next, sc)
+		}
+	}
+
+	if s2, amp, ok := s.shift(roomB0, roomB1); ok {
+		if amp == amphipodB {
+			sc := situationWithCost{s2, amp.movementCost()}
+			next = append(next, sc)
+		}
+	}
+
 	// roomB1
 	// roomC0
 	// roomC1
