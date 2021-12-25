@@ -13,9 +13,8 @@ const (
 func Calc() (int, error) {
 	burrowWithAmphoids := initialBurrowWithAmphoids()
 	fmt.Println(burrowWithAmphoids)
-	return 0, nil
-	//m := getMinimumEnergy(burrowWithAmphoids, make(map[situation]bool))
-	//return m, nil
+	m := getMinimumEnergy(burrowWithAmphoids, make(map[situation]bool))
+	return m, nil
 }
 
 func getMinimumEnergy(burrowWithAmphoids situation, alreadyConsideredStates map[situation]bool) int {
@@ -106,6 +105,21 @@ func (s fieldState) String() string {
 	}
 }
 
+func (s fieldState) movementCost() int {
+	switch s {
+	case amphipodA:
+		return 1
+	case amphipodB:
+		return 10
+	case amphipodC:
+		return 100
+	case amphipodD:
+		return 1000
+	default:
+		panic(fmt.Sprintf("movementCost? %+v", s))
+	}
+}
+
 func initialBurrowWithAmphoids() situation {
 	s := situation{}
 	s.roomA = [2]fieldState{amphipodB, amphipodA}
@@ -115,8 +129,45 @@ func initialBurrowWithAmphoids() situation {
 	return s
 }
 
-func (sit situation) nextSituationsWithCosts() []situationWithCost {
-	panic("todo")
+func (s situation) nextSituationsWithCosts() []situationWithCost {
+	next := []situationWithCost{}
+
+	if t := s.roomLeft[1]; t != emptyField {
+		if o := s.roomLeft[0]; o == emptyField {
+			s2 := s
+			s2.roomLeft[1] = emptyField
+			s2.roomLeft[0] = t
+			sc := situationWithCost{s2, t.movementCost(), false}
+			next = append(next, sc)
+		}
+	}
+
+	if t := s.roomLeft[0]; t != emptyField {
+		if o := s.roomLeft[1]; o == emptyField {
+			s2 := s
+			s2.roomLeft[0] = emptyField
+			s2.roomLeft[1] = t
+			sc := situationWithCost{s2, t.movementCost(), false}
+			next = append(next, sc)
+		}
+		if o := s.hallAB; o == emptyField {
+			s2 := s
+			s2.roomLeft[0] = emptyField
+			s2.hallAB = t
+			sc := situationWithCost{s2, 2 * t.movementCost(), false}
+			next = append(next, sc)
+		}
+		if o := s.roomA[0]; o == emptyField && t == amphipodA {
+			s2 := s
+			s2.roomLeft[0] = emptyField
+			s.roomA[0] = t
+			sc := situationWithCost{s2, 2 * t.movementCost(), true}
+			next = append(next, sc)
+		}
+	}
+
+	// here
+	return next
 }
 
 func cloneConsideredStates(m map[situation]bool) map[situation]bool {
