@@ -74,7 +74,7 @@ func (s situation) String() string {
 	t := "#############\n"
 	t += fmt.Sprintf("#%s%s.%s.%s.%s.%s%s#\n", s.roomLeft[1], s.roomLeft[0], s.hallAB, s.hallBC, s.hallCD, s.roomRight[0], s.roomRight[1])
 	t += fmt.Sprintf("###%s#%s#%s#%s###\n", s.roomA[0], s.roomB[0], s.roomC[0], s.roomD[0])
-	t += fmt.Sprintf("  #%s#%s#%s#%s###\n", s.roomA[1], s.roomB[1], s.roomC[1], s.roomD[1])
+	t += fmt.Sprintf("  #%s#%s#%s#%s#  \n", s.roomA[1], s.roomB[1], s.roomC[1], s.roomD[1])
 	t += "  #########  "
 	return t
 }
