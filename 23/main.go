@@ -13,7 +13,8 @@ const (
 func Calc() (int, error) {
 	burrowWithAmphoids := initialBurrowWithAmphoids()
 	fmt.Println(burrowWithAmphoids)
-	m := getMinimumEnergy(burrowWithAmphoids, make(map[situation]bool))
+	m := 0
+	// m := getMinimumEnergy(burrowWithAmphoids, make(map[situation]bool))
 	return m, nil
 }
 
@@ -42,7 +43,7 @@ func getMinimumEnergy(burrowWithAmphoids situation, alreadyConsideredStates map[
 				minCost = sc.cost
 			}
 		}
-		return minCost
+		return minCost // TODO here terminal might not be true if amphoid is in the first of two fields of its destinatin room
 	} else if len(nonTerminal) > 0 {
 		updatedConsideredStates := cloneConsideredStates(alreadyConsideredStates)
 		updatedConsideredStates[burrowWithAmphoids] = true
@@ -57,23 +58,13 @@ func getMinimumEnergy(burrowWithAmphoids situation, alreadyConsideredStates map[
 	panic("no terminal and no non-termianl states")
 }
 
-type situation struct {
-	roomLeft  [2]fieldState
-	roomA     [2]fieldState
-	hallAB    fieldState
-	roomB     [2]fieldState
-	hallBC    fieldState
-	roomC     [2]fieldState
-	hallCD    fieldState
-	roomD     [2]fieldState
-	roomRight [2]fieldState
-}
+type situation [burrowSize]fieldState
 
 func (s situation) String() string {
 	t := "#############\n"
-	t += fmt.Sprintf("#%s%s.%s.%s.%s.%s%s#\n", s.roomLeft[1], s.roomLeft[0], s.hallAB, s.hallBC, s.hallCD, s.roomRight[0], s.roomRight[1])
-	t += fmt.Sprintf("###%s#%s#%s#%s###\n", s.roomA[0], s.roomB[0], s.roomC[0], s.roomD[0])
-	t += fmt.Sprintf("  #%s#%s#%s#%s#  \n", s.roomA[1], s.roomB[1], s.roomC[1], s.roomD[1])
+	t += fmt.Sprintf("#%s%s.%s.%s.%s.%s%s#\n", s[roomLeft1], s[roomLeft0], s[hallAB], s[hallBC], s[hallCD], s[roomRight0], s[roomRight1])
+	t += fmt.Sprintf("###%s#%s#%s#%s###\n", s[roomA0], s[roomB0], s[roomC0], s[roomD0])
+	t += fmt.Sprintf("  #%s#%s#%s#%s#  \n", s[roomA1], s[roomB1], s[roomC1], s[roomD1])
 	t += "  #########  "
 	return t
 }
@@ -122,52 +113,57 @@ func (s fieldState) movementCost() int {
 
 func initialBurrowWithAmphoids() situation {
 	s := situation{}
-	s.roomA = [2]fieldState{amphipodB, amphipodA}
-	s.roomB = [2]fieldState{amphipodC, amphipodD}
-	s.roomC = [2]fieldState{amphipodB, amphipodC}
-	s.roomD = [2]fieldState{amphipodD, amphipodA}
+	s[roomA0] = amphipodB
+	s[roomA1] = amphipodA
+	s[roomB0] = amphipodC
+	s[roomB1] = amphipodD
+	s[roomC0] = amphipodB
+	s[roomC1] = amphipodC
+	s[roomD0] = amphipodD
+	s[roomD1] = amphipodA
 	return s
 }
 
 func (s situation) nextSituationsWithCosts() []situationWithCost {
-	next := []situationWithCost{}
+	panic("todo")
+	// next := []situationWithCost{}
 
-	if t := s.roomLeft[1]; t != emptyField {
-		if o := s.roomLeft[0]; o == emptyField {
-			s2 := s
-			s2.roomLeft[1] = emptyField
-			s2.roomLeft[0] = t
-			sc := situationWithCost{s2, t.movementCost(), false}
-			next = append(next, sc)
-		}
-	}
+	// if t := s.roomLeft[1]; t != emptyField {
+	// 	if o := s.roomLeft[0]; o == emptyField {
+	// 		s2 := s
+	// 		s2.roomLeft[1] = emptyField
+	// 		s2.roomLeft[0] = t
+	// 		sc := situationWithCost{s2, t.movementCost(), false}
+	// 		next = append(next, sc)
+	// 	}
+	// }
 
-	if t := s.roomLeft[0]; t != emptyField {
-		if o := s.roomLeft[1]; o == emptyField {
-			s2 := s
-			s2.roomLeft[0] = emptyField
-			s2.roomLeft[1] = t
-			sc := situationWithCost{s2, t.movementCost(), false}
-			next = append(next, sc)
-		}
-		if o := s.hallAB; o == emptyField {
-			s2 := s
-			s2.roomLeft[0] = emptyField
-			s2.hallAB = t
-			sc := situationWithCost{s2, 2 * t.movementCost(), false}
-			next = append(next, sc)
-		}
-		if o := s.roomA[0]; o == emptyField && t == amphipodA {
-			s2 := s
-			s2.roomLeft[0] = emptyField
-			s.roomA[0] = t
-			sc := situationWithCost{s2, 2 * t.movementCost(), true}
-			next = append(next, sc)
-		}
-	}
+	// if t := s.roomLeft[0]; t != emptyField {
+	// 	if o := s.roomLeft[1]; o == emptyField {
+	// 		s2 := s
+	// 		s2.roomLeft[0] = emptyField
+	// 		s2.roomLeft[1] = t
+	// 		sc := situationWithCost{s2, t.movementCost(), false}
+	// 		next = append(next, sc)
+	// 	}
+	// 	if o := s.hallAB; o == emptyField {
+	// 		s2 := s
+	// 		s2.roomLeft[0] = emptyField
+	// 		s2.hallAB = t
+	// 		sc := situationWithCost{s2, 2 * t.movementCost(), false}
+	// 		next = append(next, sc)
+	// 	}
+	// 	if o := s.roomA[0]; o == emptyField && t == amphipodA {
+	// 		s2 := s
+	// 		s2.roomLeft[0] = emptyField
+	// 		s.roomA[0] = t
+	// 		sc := situationWithCost{s2, 2 * t.movementCost(), true}
+	// 		next = append(next, sc)
+	// 	}
+	// }
 
 	// here
-	return next
+	// return next
 }
 
 func cloneConsideredStates(m map[situation]bool) map[situation]bool {
@@ -183,3 +179,24 @@ type situationWithCost struct {
 	cost       int
 	isTerminal bool
 }
+
+type burrowIndex int
+
+const (
+	roomLeft0 = iota
+	roomLeft1
+	roomA0
+	roomA1
+	roomB0
+	roomB1
+	roomC0
+	roomC1
+	roomD0
+	roomD1
+	roomRight0
+	roomRight1
+	hallAB
+	hallBC
+	hallCD
+	burrowSize // must be last const
+)
