@@ -249,3 +249,16 @@ func Atoi(s string) int {
 	}
 	return v
 }
+
+func UniqInt(values []int) []int {
+	m := make(map[int]bool)
+	uniq := []int{}
+	for _, v := range values {
+		if _, ok := m[v]; ok {
+			continue
+		}
+		m[v] = true
+		uniq = append(uniq, v)
+	}
+	return uniq
+}
