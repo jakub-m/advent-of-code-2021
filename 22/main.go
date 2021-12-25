@@ -31,9 +31,9 @@ func Calc(r io.Reader, constrain bool) (int, error) {
 	if constrain {
 		newCommands := []command{}
 		for _, c := range commands {
-			if c.cuboid.xx.start >= -50 && c.cuboid.xx.end <= 50 &&
-				c.cuboid.yy.start >= -50 && c.cuboid.yy.end <= 50 &&
-				c.cuboid.zz.start >= -50 && c.cuboid.zz.end <= 50 {
+			if c.cuboid.xx.start >= -50 && c.cuboid.xx.end <= 51 &&
+				c.cuboid.yy.start >= -50 && c.cuboid.yy.end <= 51 &&
+				c.cuboid.zz.start >= -50 && c.cuboid.zz.end <= 51 {
 				newCommands = append(newCommands, c)
 			}
 		}

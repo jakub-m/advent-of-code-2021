@@ -11,9 +11,10 @@ import (
 
 func TestCalc0(t *testing.T) {
 	input := `
-on x=0..10,y=0..11,z=0..10
-on x=0..5,y=0..12,z=0..10
-on x=0..2,y=0..13,z=0..10
+on x=1..10,y=1..10,z=1..10
+on x=3..10,y=3..10,z=3..10
+off x=1..5,y=1..5,z=1..5
+off x=1..5,y=1..5,z=1..5
 `
 	v, err := Calc(strings.NewReader(strings.Trim(input, "\n")), false)
 	assert.NoError(t, err)
