@@ -16,7 +16,15 @@ func Calc() (int, error) {
 	//m := getMinimumEnergy(burrowWithAmphoids, make(map[situation]bool))
 	for _, sc := range burrowWithAmphoids.nextSituationsWithCosts() {
 		fmt.Println()
+		fmt.Println("=============================")
 		fmt.Println(sc.situation)
+		fmt.Println("=============================")
+
+		for _, sc := range sc.situation.nextSituationsWithCosts() {
+			fmt.Println()
+			fmt.Println(sc.situation)
+		}
+
 	}
 	return 0, nil
 }
@@ -209,14 +217,14 @@ func moveFromAmphipodRoom0(s situation, roomOwner fieldState, start, destOutLeft
 	next := []situationWithCost{}
 
 	if s2, amp, ok := s.shift(start, destOutLeft); ok {
-		if amp != roomOwner {
+		if amp != roomOwner || s[room1Index] != roomOwner {
 			sc := situationWithCost{s2, 2 * amp.movementCost()}
 			next = append(next, sc)
 		}
 	}
 
 	if s2, amp, ok := s.shift(start, destOutRight); ok {
-		if amp != roomOwner {
+		if amp != roomOwner || s[room1Index] != roomOwner {
 			sc := situationWithCost{s2, 2 * amp.movementCost()}
 			next = append(next, sc)
 		}
