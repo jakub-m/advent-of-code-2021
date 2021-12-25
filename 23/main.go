@@ -126,24 +126,32 @@ func initialBurrowWithAmphoids() situation {
 func (s situation) nextSituationsWithCosts() []situationWithCost {
 	next := []situationWithCost{}
 
-	// if t := s.roomLeft[1]; t != emptyField {
-	// 	if o := s.roomLeft[0]; o == emptyField {
-	// 		s2 := s
-	// 		s2.roomLeft[1] = emptyField
-	// 		s2.roomLeft[0] = t
-	// 		sc := situationWithCost{s2, t.movementCost(), false}
-	// 		next = append(next, sc)
-	// 	}
-	// }
+	if t := s[roomLeft1]; t != emptyField {
+		if o := s[roomLeft0]; o == emptyField {
+			s2 := s
+			s2[roomLeft1] = emptyField
+			s2[roomLeft0] = t
+			sc := situationWithCost{s2, t.movementCost(), false}
+			next = append(next, sc)
+		}
+	}
 
-	// if t := s.roomLeft[0]; t != emptyField {
-	// 	if o := s.roomLeft[1]; o == emptyField {
-	// 		s2 := s
-	// 		s2.roomLeft[0] = emptyField
-	// 		s2.roomLeft[1] = t
-	// 		sc := situationWithCost{s2, t.movementCost(), false}
-	// 		next = append(next, sc)
-	// 	}
+	// todo here roomLeft0
+
+	if t := s[roomA0]; t != emptyField {
+		if o := s[roomLeft0]; o == emptyField {
+			s2 := s
+			s2[roomA0] = emptyField
+			s2[roomLeft0] = t
+			sc := situationWithCost{s2, 2 * t.movementCost(), false}
+			next = append(next, sc)
+		}
+
+	}
+
+	// todo move inside destination
+	// todo return 0 on final position
+
 	// 	if o := s.hallAB; o == emptyField {
 	// 		s2 := s
 	// 		s2.roomLeft[0] = emptyField
