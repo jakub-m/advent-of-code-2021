@@ -29,6 +29,13 @@ func TestCalc1(t *testing.T) {
 	assert.Equal(t, 590784, v)
 }
 
+func TestCalc1b(t *testing.T) {
+	f, err := os.Open("input1b")
+	assert.NoError(t, err)
+	v, err := Calc(f, false)
+	assert.NoError(t, err)
+	assert.Equal(t, 2758514936282235, v)
+}
 func TestCalc2(t *testing.T) {
 	advent.PrintEnabled = false
 	f, err := os.Open("input2")
