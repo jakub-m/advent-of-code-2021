@@ -13,8 +13,7 @@ const (
 func Calc() (int, error) {
 	burrowWithAmphoids := initialBurrowWithAmphoids()
 	fmt.Println(burrowWithAmphoids)
-	m := 0
-	// m := getMinimumEnergy(burrowWithAmphoids, make(map[situation]bool))
+	m := getMinimumEnergy(burrowWithAmphoids, make(map[situation]bool))
 	return m, nil
 }
 
@@ -125,8 +124,7 @@ func initialBurrowWithAmphoids() situation {
 }
 
 func (s situation) nextSituationsWithCosts() []situationWithCost {
-	panic("todo")
-	// next := []situationWithCost{}
+	next := []situationWithCost{}
 
 	// if t := s.roomLeft[1]; t != emptyField {
 	// 	if o := s.roomLeft[0]; o == emptyField {
