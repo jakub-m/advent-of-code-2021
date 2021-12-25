@@ -4,9 +4,25 @@ import (
 	"advent"
 	"fmt"
 	"io"
+	"log"
+	"os"
 	"regexp"
 	"sort"
 )
+
+func main() {
+	advent.PrintEnabled = false
+	f, err := os.Open(os.Args[1])
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+	v, err := Calc(f, false)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("RESULT %d\n", v)
+}
 
 func Calc(r io.Reader, constrain bool) (int, error) {
 	commands, err := parseInput(r)
@@ -142,7 +158,7 @@ type rulers struct {
 func splitCuboidsInCommands(commands []command, fn func(cuboid) []cuboid) []command {
 	newCommands := []command{}
 	for i, comm := range commands {
-		fmt.Printf("%.1f%%    \r", 100.0*float32(i)/float32(len(commands)))
+		fmt.Printf("%.1f%%    \r", 100.0*float32(i+1)/float32(len(commands)))
 		for _, cub := range fn(comm.cuboid) {
 			newCommands = append(newCommands, command{
 				onOff:  comm.onOff,
@@ -150,6 +166,7 @@ func splitCuboidsInCommands(commands []command, fn func(cuboid) []cuboid) []comm
 			})
 		}
 	}
+	fmt.Println("done split   ")
 	return newCommands
 }
 

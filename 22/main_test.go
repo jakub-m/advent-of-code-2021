@@ -44,10 +44,3 @@ func TestCalc2(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 543306, v)
 }
-
-func TestExplode(t *testing.T) {
-	// fmt.Println(len(c))
-	// for _, c := range c {
-	// 	fmt.Println(c)
-	// }
-}
