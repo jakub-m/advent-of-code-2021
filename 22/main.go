@@ -8,7 +8,7 @@ import (
 	"sort"
 )
 
-func Calc(r io.Reader) (int, error) {
+func Calc(r io.Reader, constrain bool) (int, error) {
 	commands, err := parseInput(r)
 	if err != nil {
 		return 0, err
@@ -28,13 +28,38 @@ func Calc(r io.Reader) (int, error) {
 	sort.Ints(rulers.z)
 
 	commands = splitCuboidsInCommands(commands, func(c cuboid) []cuboid { return explodeAlongDims(c, rulers) })
-
-	advent.Println("rulers", rulers)
-	for _, c := range commands {
-		advent.Println(c)
+	if constrain {
+		newCommands := []command{}
+		for _, c := range commands {
+			if c.cuboid.xx.start >= -50 && c.cuboid.xx.end <= 50 &&
+				c.cuboid.yy.start >= -50 && c.cuboid.yy.end <= 50 &&
+				c.cuboid.zz.start >= -50 && c.cuboid.zz.end <= 50 {
+				newCommands = append(newCommands, c)
+			}
+		}
+		commands = newCommands
 	}
 
-	return 0, nil
+	advent.Println("rulers", rulers)
+	advent.Println("len commands", len(commands))
+
+	return applyCommands(commands), nil
+}
+
+func applyCommands(cc []command) int {
+	appliedOn := make(map[cuboid]bool)
+	for _, c := range cc {
+		appliedOn[c.cuboid] = c.onOff
+	}
+
+	enabledCount := 0
+	for c, v := range appliedOn {
+		if !v {
+			continue
+		}
+		enabledCount += c.volume()
+	}
+	return enabledCount
 }
 
 func updateRuler(ruler []int, intRange intRange) []int {
@@ -93,12 +118,12 @@ type cuboid struct {
 	zz intRange
 }
 
-func (c cuboid) String() string {
-	return fmt.Sprintf("%s,%s,%s", c.xx, c.yy, c.zz)
+func (c cuboid) volume() int {
+	return (c.xx.end - c.xx.start) * (c.yy.end - c.yy.start) * (c.zz.end - c.zz.start)
 }
 
-type xyz struct {
-	x, y, z int
+func (c cuboid) String() string {
+	return fmt.Sprintf("%s,%s,%s", c.xx, c.yy, c.zz)
 }
 
 type intRange struct {
@@ -108,38 +133,6 @@ type intRange struct {
 
 func (r intRange) String() string {
 	return fmt.Sprintf("(%d,%d)", r.start, r.end)
-}
-
-func trim(c cuboid) cuboid {
-	if c.xx.start < -50 {
-		c.xx.start = -50
-	}
-	if c.yy.start < -50 {
-		c.yy.start = -50
-	}
-	if c.zz.start < -50 {
-		c.zz.start = -50
-	}
-
-	if c.xx.end > 50 {
-		c.xx.end = 51
-	}
-	if c.yy.end > 50 {
-		c.yy.end = 51
-	}
-	if c.zz.end > 50 {
-		c.zz.end = 51
-	}
-	return c
-}
-
-func sortedCoords(rr ...intRange) []int {
-	vals := []int{}
-	for _, r := range rr {
-		vals = append(vals, r.start, r.end)
-	}
-	sort.Ints(vals)
-	return vals
 }
 
 type rulers struct {
