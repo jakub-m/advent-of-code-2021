@@ -72,27 +72,46 @@ type situation struct {
 
 func (s situation) String() string {
 	t := "#############\n"
-	t += fmt.Sprintf("#%c%c.%c.%c.%c.%c%c#\n", s.roomLeft[1], s.roomLeft[0], s.hallAB, s.hallBC, s.hallCD, s.roomRight[0], s.roomRight[1])
-	t += fmt.Sprintf("###%c#%c#%c#%c###\n", s.roomA[0], s.roomB[0], s.roomC[0], s.roomD[0])
-	t += fmt.Sprintf("  #%c#%c#%c#%c###\n", s.roomA[1], s.roomB[1], s.roomC[1], s.roomD[1])
-	t += fmt.Sprintf("  #########  ", s.roomA[1], s.roomB[1], s.roomC[1], s.roomD[1])
+	t += fmt.Sprintf("#%s%s.%s.%s.%s.%s%s#\n", s.roomLeft[1], s.roomLeft[0], s.hallAB, s.hallBC, s.hallCD, s.roomRight[0], s.roomRight[1])
+	t += fmt.Sprintf("###%s#%s#%s#%s###\n", s.roomA[0], s.roomB[0], s.roomC[0], s.roomD[0])
+	t += fmt.Sprintf("  #%s#%s#%s#%s###\n", s.roomA[1], s.roomB[1], s.roomC[1], s.roomD[1])
+	t += "  #########  "
 	return t
 }
 
-type fieldState rune
+type fieldState int
 
 const (
-	emptyField fieldState = '.'
-	amphipodA             = "A"
-	amphipodB             = "B"
-	amphipodC             = "C"
-	amphipodD             = "D"
+	emptyField fieldState = iota
+	amphipodA
+	amphipodB
+	amphipodC
+	amphipodD
 )
+
+func (s fieldState) String() string {
+	switch s {
+	case emptyField:
+		return "."
+	case amphipodA:
+		return "A"
+	case amphipodB:
+		return "B"
+	case amphipodC:
+		return "C"
+	case amphipodD:
+		return "D"
+	default:
+		return "?"
+	}
+}
 
 func initialBurrowWithAmphoids() situation {
 	s := situation{}
-	s.roomLeft[1] = emptyField
-	s.
+	s.roomA = [2]fieldState{amphipodB, amphipodA}
+	s.roomB = [2]fieldState{amphipodC, amphipodD}
+	s.roomC = [2]fieldState{amphipodB, amphipodC}
+	s.roomD = [2]fieldState{amphipodD, amphipodA}
 	return s
 }
 
