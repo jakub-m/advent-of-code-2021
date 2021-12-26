@@ -3,6 +3,7 @@ package main
 import (
 	"advent"
 	"fmt"
+	"sort"
 )
 
 const (
@@ -10,35 +11,105 @@ const (
 	MaxInt  = int(MaxUint >> 1)
 )
 
+func main() {
+	m, err := Calc()
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("RESULT", m)
+}
+
 func Calc() (int, error) {
-	burrowWithAmphoids := initialBurrowWithAmphoids()
-	m := getMinimumEnergy(burrowWithAmphoids, make(map[situation]bool))
-	// fmt.Println(burrowWithAmphoids)
-	// for _, sc := range burrowWithAmphoids.nextSituationsWithCosts() {
-	// 	fmt.Println()
-	// 	fmt.Println("=============================")
-	// 	fmt.Println(sc.situation)
-	// 	fmt.Println("=============================")
+	//m = getMinimumEnergy(initialSituation, make(map[situation]bool))
 
-	// 	for _, sc := range sc.situation.nextSituationsWithCosts() {
-	// 		fmt.Println()
-	// 		fmt.Println(sc.situation)
-	// 	}
+	// dijkstra for implicit graph
+	visited := make(map[situation]bool)
+	distance := make(map[situation]int) // use MaxInt if not in set
+	distance[initialSituation] = 0
 
-	// }
+	backlogList := []situation{initialSituation}
+	backlogSet := make(map[situation]bool)
+	backlogSet[initialSituation] = true
+	iter := 0
+	for len(backlogList) > 0 {
+		iter++
+		var current situation
+		current, backlogList = backlogList[0], backlogList[1:]
+		backlogSet[current] = false
+
+		var currentDistance int
+		if d, ok := distance[current]; ok {
+			currentDistance = d
+		} else {
+			panic(fmt.Sprint("current node has no distance:", current))
+		}
+		if iter == 1000 {
+			advent.Println("len(backlog)", len(backlogList), "currentDistance", currentDistance)
+			iter = 0
+		}
+
+		for _, sc := range current.nextSituationsWithCosts() {
+			if visited[sc.situation] {
+				continue
+			}
+			tentativeDistance := currentDistance + sc.cost
+			if d, ok := distance[sc.situation]; ok {
+				if tentativeDistance < d {
+					distance[sc.situation] = tentativeDistance
+				}
+			} else {
+				distance[sc.situation] = tentativeDistance
+			}
+			if !backlogSet[sc.situation] {
+				backlogList = append(backlogList, sc.situation)
+				backlogSet[sc.situation] = true
+			}
+		}
+		visited[current] = true
+
+		if visited[terminalSituation] {
+			break
+		}
+
+		sort.Slice(backlogList, func(i, j int) bool {
+			getDistOrMax := func(s situation) int {
+				if d, ok := distance[s]; ok {
+					return d
+				} else {
+					return MaxInt
+				}
+			}
+			return getDistOrMax(backlogList[i]) < getDistOrMax(backlogList[j])
+		})
+	}
+
+	m := distance[terminalSituation]
+
 	return m, nil
 }
 
-func getMinimumEnergy(burrowWithAmphoids situation, alreadyConsideredStates map[situation]bool) int {
+func getMinimumEnergy(inputSituation situation, alreadyConsideredStates map[situation]bool) int {
 	possibleNextStates := []situationWithCost{}
-	for _, sc := range burrowWithAmphoids.nextSituationsWithCosts() {
+	for _, sc := range inputSituation.nextSituationsWithCosts() {
 		if !alreadyConsideredStates[sc.situation] {
 			possibleNextStates = append(possibleNextStates, sc)
 		}
 	}
 
+	if advent.PrintEnabled {
+		fmt.Println("====================================")
+		fmt.Println(inputSituation)
+		fmt.Println()
+		fmt.Println("------------------------------------")
+		for _, s := range possibleNextStates {
+			fmt.Println("cost", s.cost)
+			fmt.Println(s.situation)
+			fmt.Println()
+		}
+	}
+
 	updatedConsideredStates := cloneConsideredStates(alreadyConsideredStates)
-	updatedConsideredStates[burrowWithAmphoids] = true
+	updatedConsideredStates[inputSituation] = true
 	nextCosts := []int{}
 	for _, sc := range possibleNextStates {
 		nextMin := getMinimumEnergy(sc.situation, updatedConsideredStates)
@@ -107,6 +178,35 @@ func (s fieldState) movementCost() int {
 	}
 }
 
+var initialSituation situation
+
+//proper initial sit
+func init() {
+	s := situation{}
+	s[roomA0] = amphipodB
+	s[roomA1] = amphipodA
+	s[roomB0] = amphipodC
+	s[roomB1] = amphipodD
+	s[roomC0] = amphipodB
+	s[roomC1] = amphipodC
+	s[roomD0] = amphipodD
+	s[roomD1] = amphipodA
+	initialSituation = s
+}
+
+// func init() {
+// s := situation{}
+// s[roomLeft0] = amphipodA
+// s[roomA1] = amphipodA
+// s[roomB0] = amphipodB
+// s[roomB1] = amphipodB
+// s[roomC0] = amphipodC
+// s[roomC1] = amphipodC
+// s[roomD0] = amphipodD
+// s[roomD1] = amphipodD
+// initialSituation = s
+// }
+
 var terminalSituation situation
 
 func init() {
@@ -122,22 +222,9 @@ func init() {
 	terminalSituation = s
 }
 
-func initialBurrowWithAmphoids() situation {
-	s := situation{}
-	s[roomA0] = amphipodB
-	s[roomA1] = amphipodA
-	s[roomB0] = amphipodC
-	s[roomB1] = amphipodD
-	s[roomC0] = amphipodB
-	s[roomC1] = amphipodC
-	s[roomD0] = amphipodD
-	s[roomD1] = amphipodA
-	return s
-}
-
 func (s situation) nextSituationsWithCosts() []situationWithCost {
 	if s == terminalSituation {
-		return []situationWithCost{situationWithCost{
+		return []situationWithCost{{
 			s, 0,
 		}}
 	}
