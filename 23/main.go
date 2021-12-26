@@ -23,6 +23,15 @@ func main() {
 }
 
 func Calc(initialSituation situation) (int, error) {
+	if advent.PrintEnabled {
+		fmt.Println("initial")
+		fmt.Println(initialSituation)
+		fmt.Println()
+		fmt.Println("terminal")
+		fmt.Println(terminalSituation)
+		fmt.Println()
+	}
+
 	// dijkstra for implicit graph
 	visited := make(map[situation]bool)
 	distance := make(map[situation]int) // use MaxInt if not in set
@@ -84,6 +93,8 @@ func (s situation) String() string {
 	t += fmt.Sprintf("#%s%s.%s.%s.%s.%s%s#\n", s[roomLeft1], s[roomLeft0], s[hallAB], s[hallBC], s[hallCD], s[roomRight0], s[roomRight1])
 	t += fmt.Sprintf("###%s#%s#%s#%s###\n", s[roomA0], s[roomB0], s[roomC0], s[roomD0])
 	t += fmt.Sprintf("  #%s#%s#%s#%s#  \n", s[roomA1], s[roomB1], s[roomC1], s[roomD1])
+	t += fmt.Sprintf("  #%s#%s#%s#%s#  \n", s[roomA2], s[roomB2], s[roomC2], s[roomD2])
+	t += fmt.Sprintf("  #%s#%s#%s#%s#  \n", s[roomA3], s[roomB3], s[roomC3], s[roomD3])
 	t += "  #########  "
 	return t
 }
@@ -133,13 +144,21 @@ func (s fieldState) movementCost() int {
 func initialSituation1() situation {
 	s := situation{}
 	s[roomA0] = amphipodB
-	s[roomA1] = amphipodA
+	s[roomA1] = amphipodD
+	s[roomA2] = amphipodD
+	s[roomA3] = amphipodA
 	s[roomB0] = amphipodC
-	s[roomB1] = amphipodD
+	s[roomB1] = amphipodC
+	s[roomB2] = amphipodB
+	s[roomB3] = amphipodD
 	s[roomC0] = amphipodB
-	s[roomC1] = amphipodC
+	s[roomC1] = amphipodB
+	s[roomC2] = amphipodA
+	s[roomC3] = amphipodC
 	s[roomD0] = amphipodD
 	s[roomD1] = amphipodA
+	s[roomD2] = amphipodC
+	s[roomD3] = amphipodA
 	return s
 }
 
@@ -175,12 +194,20 @@ func init() {
 	s := situation{}
 	s[roomA0] = amphipodA
 	s[roomA1] = amphipodA
+	s[roomA2] = amphipodA
+	s[roomA3] = amphipodA
 	s[roomB0] = amphipodB
 	s[roomB1] = amphipodB
+	s[roomB2] = amphipodB
+	s[roomB3] = amphipodB
 	s[roomC0] = amphipodC
 	s[roomC1] = amphipodC
+	s[roomC2] = amphipodC
+	s[roomC3] = amphipodC
 	s[roomD0] = amphipodD
 	s[roomD1] = amphipodD
+	s[roomD2] = amphipodD
+	s[roomD3] = amphipodD
 	terminalSituation = s
 }
 
@@ -267,12 +294,20 @@ const (
 	roomLeft1
 	roomA0
 	roomA1
+	roomA2
+	roomA3
 	roomB0
 	roomB1
+	roomB2
+	roomB3
 	roomC0
 	roomC1
+	roomC2
+	roomC3
 	roomD0
 	roomD1
+	roomD2
+	roomD3
 	roomRight0
 	roomRight1
 	hallAB
