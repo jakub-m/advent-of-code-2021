@@ -43,7 +43,7 @@ func Calc(initialSituation situation) (int, error) {
 		} else {
 			panic(fmt.Sprint("current node has no distance:", current))
 		}
-		if iter == 1000 {
+		if iter == 10000 {
 			advent.Println("len(backlog)", len(*backlog), "currentDistance", currentDistance)
 			iter = 0
 		}
