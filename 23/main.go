@@ -1,9 +1,12 @@
+// Dijkstra on implicit graph works
+// Dynamic programming does not work because the graph is not directed (or I could not make it work)
+
 package main
 
 import (
 	"advent"
+	"container/heap"
 	"fmt"
-	"sort"
 )
 
 const (
@@ -12,29 +15,26 @@ const (
 )
 
 func main() {
-	m, err := Calc()
+	m, err := Calc(initialSituation1())
 	if err != nil {
 		panic(err)
 	}
 	fmt.Println("RESULT", m)
 }
 
-func Calc() (int, error) {
-	//m = getMinimumEnergy(initialSituation, make(map[situation]bool))
-
+func Calc(initialSituation situation) (int, error) {
 	// dijkstra for implicit graph
 	visited := make(map[situation]bool)
 	distance := make(map[situation]int) // use MaxInt if not in set
 	distance[initialSituation] = 0
 
-	backlogList := []situation{initialSituation}
+	backlog := &backlogHeap{{initialSituation, 0}}
 	backlogSet := make(map[situation]bool)
-	backlogSet[initialSituation] = true
 	iter := 0
-	for len(backlogList) > 0 {
+	for len(*backlog) > 0 {
 		iter++
-		var current situation
-		current, backlogList = backlogList[0], backlogList[1:]
+		backlogHead := heap.Pop(backlog).(situationWithCost)
+		current := backlogHead.situation
 		backlogSet[current] = false
 
 		var currentDistance int
@@ -44,7 +44,7 @@ func Calc() (int, error) {
 			panic(fmt.Sprint("current node has no distance:", current))
 		}
 		if iter == 1000 {
-			advent.Println("len(backlog)", len(backlogList), "currentDistance", currentDistance)
+			advent.Println("len(backlog)", len(*backlog), "currentDistance", currentDistance)
 			iter = 0
 		}
 
@@ -61,7 +61,7 @@ func Calc() (int, error) {
 				distance[sc.situation] = tentativeDistance
 			}
 			if !backlogSet[sc.situation] {
-				backlogList = append(backlogList, sc.situation)
+				heap.Push(backlog, situationWithCost{sc.situation, distance[sc.situation]})
 				backlogSet[sc.situation] = true
 			}
 		}
@@ -70,59 +70,11 @@ func Calc() (int, error) {
 		if visited[terminalSituation] {
 			break
 		}
-
-		sort.Slice(backlogList, func(i, j int) bool {
-			getDistOrMax := func(s situation) int {
-				if d, ok := distance[s]; ok {
-					return d
-				} else {
-					return MaxInt
-				}
-			}
-			return getDistOrMax(backlogList[i]) < getDistOrMax(backlogList[j])
-		})
 	}
 
 	m := distance[terminalSituation]
 
 	return m, nil
-}
-
-func getMinimumEnergy(inputSituation situation, alreadyConsideredStates map[situation]bool) int {
-	possibleNextStates := []situationWithCost{}
-	for _, sc := range inputSituation.nextSituationsWithCosts() {
-		if !alreadyConsideredStates[sc.situation] {
-			possibleNextStates = append(possibleNextStates, sc)
-		}
-	}
-
-	if advent.PrintEnabled {
-		fmt.Println("====================================")
-		fmt.Println(inputSituation)
-		fmt.Println()
-		fmt.Println("------------------------------------")
-		for _, s := range possibleNextStates {
-			fmt.Println("cost", s.cost)
-			fmt.Println(s.situation)
-			fmt.Println()
-		}
-	}
-
-	updatedConsideredStates := cloneConsideredStates(alreadyConsideredStates)
-	updatedConsideredStates[inputSituation] = true
-	nextCosts := []int{}
-	for _, sc := range possibleNextStates {
-		nextMin := getMinimumEnergy(sc.situation, updatedConsideredStates)
-		if nextMin != MaxInt {
-			nextCost := sc.cost + nextMin
-			nextCosts = append(nextCosts, nextCost)
-		}
-	}
-	if len(nextCosts) == 0 {
-		return MaxInt
-	}
-	return advent.MinInt(nextCosts)
-
 }
 
 type situation [burrowSize]fieldState
@@ -178,10 +130,7 @@ func (s fieldState) movementCost() int {
 	}
 }
 
-var initialSituation situation
-
-//proper initial sit
-func init() {
+func initialSituation1() situation {
 	s := situation{}
 	s[roomA0] = amphipodB
 	s[roomA1] = amphipodA
@@ -191,7 +140,7 @@ func init() {
 	s[roomC1] = amphipodC
 	s[roomD0] = amphipodD
 	s[roomD1] = amphipodA
-	initialSituation = s
+	return s
 }
 
 // func init() {
@@ -291,14 +240,6 @@ func (s situation) shift(start, end burrowIndex) (situation, fieldState, bool) {
 	s2 := s
 	s2[start], s2[end] = s2[end], s2[start]
 	return s2, this, true
-}
-
-func cloneConsideredStates(m map[situation]bool) map[situation]bool {
-	c := make(map[situation]bool)
-	for k, v := range m {
-		c[k] = v
-	}
-	return c
 }
 
 type situationWithCost struct {
@@ -427,4 +368,30 @@ func moveSideRoom1(s situation, start, destSideRoom0 burrowIndex) []situationWit
 		next = append(next, sc)
 	}
 	return next
+}
+
+type backlogHeap []situationWithCost
+
+func (h backlogHeap) Len() int {
+	return len(h)
+}
+
+func (h backlogHeap) Less(i, j int) bool {
+	return h[i].cost < h[j].cost
+}
+
+func (h backlogHeap) Swap(i, j int) {
+	h[i], h[j] = h[j], h[i]
+}
+
+func (h *backlogHeap) Push(x interface{}) {
+	*h = append(*h, x.(situationWithCost))
+}
+
+func (h *backlogHeap) Pop() interface{} {
+	old := *h
+	n := len(old)
+	x := old[n-1]
+	*h = old[0 : n-1]
+	return x
 }
