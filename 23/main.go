@@ -12,21 +12,21 @@ const (
 
 func Calc() (int, error) {
 	burrowWithAmphoids := initialBurrowWithAmphoids()
-	fmt.Println(burrowWithAmphoids)
-	//m := getMinimumEnergy(burrowWithAmphoids, make(map[situation]bool))
-	for _, sc := range burrowWithAmphoids.nextSituationsWithCosts() {
-		fmt.Println()
-		fmt.Println("=============================")
-		fmt.Println(sc.situation)
-		fmt.Println("=============================")
+	m := getMinimumEnergy(burrowWithAmphoids, make(map[situation]bool))
+	// fmt.Println(burrowWithAmphoids)
+	// for _, sc := range burrowWithAmphoids.nextSituationsWithCosts() {
+	// 	fmt.Println()
+	// 	fmt.Println("=============================")
+	// 	fmt.Println(sc.situation)
+	// 	fmt.Println("=============================")
 
-		for _, sc := range sc.situation.nextSituationsWithCosts() {
-			fmt.Println()
-			fmt.Println(sc.situation)
-		}
+	// 	for _, sc := range sc.situation.nextSituationsWithCosts() {
+	// 		fmt.Println()
+	// 		fmt.Println(sc.situation)
+	// 	}
 
-	}
-	return 0, nil
+	// }
+	return m, nil
 }
 
 func getMinimumEnergy(burrowWithAmphoids situation, alreadyConsideredStates map[situation]bool) int {
@@ -41,8 +41,14 @@ func getMinimumEnergy(burrowWithAmphoids situation, alreadyConsideredStates map[
 	updatedConsideredStates[burrowWithAmphoids] = true
 	nextCosts := []int{}
 	for _, sc := range possibleNextStates {
-		nextCost := sc.cost + getMinimumEnergy(sc.situation, updatedConsideredStates)
-		nextCosts = append(nextCosts, nextCost)
+		nextMin := getMinimumEnergy(sc.situation, updatedConsideredStates)
+		if nextMin != MaxInt {
+			nextCost := sc.cost + nextMin
+			nextCosts = append(nextCosts, nextCost)
+		}
+	}
+	if len(nextCosts) == 0 {
+		return MaxInt
 	}
 	return advent.MinInt(nextCosts)
 
@@ -101,6 +107,21 @@ func (s fieldState) movementCost() int {
 	}
 }
 
+var terminalSituation situation
+
+func init() {
+	s := situation{}
+	s[roomA0] = amphipodA
+	s[roomA1] = amphipodA
+	s[roomB0] = amphipodB
+	s[roomB1] = amphipodB
+	s[roomC0] = amphipodC
+	s[roomC1] = amphipodC
+	s[roomD0] = amphipodD
+	s[roomD1] = amphipodD
+	terminalSituation = s
+}
+
 func initialBurrowWithAmphoids() situation {
 	s := situation{}
 	s[roomA0] = amphipodB
@@ -115,6 +136,12 @@ func initialBurrowWithAmphoids() situation {
 }
 
 func (s situation) nextSituationsWithCosts() []situationWithCost {
+	if s == terminalSituation {
+		return []situationWithCost{situationWithCost{
+			s, 0,
+		}}
+	}
+
 	next := []situationWithCost{}
 
 	// roomLeft1
