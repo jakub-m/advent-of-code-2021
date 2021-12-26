@@ -143,6 +143,19 @@ func initialSituation1() situation {
 	return s
 }
 
+func initialSituation2() situation {
+	s := situation{}
+	s[roomA0] = amphipodD
+	s[roomA1] = amphipodC
+	s[roomB0] = amphipodC
+	s[roomB1] = amphipodD
+	s[roomC0] = amphipodA
+	s[roomC1] = amphipodA
+	s[roomD0] = amphipodB
+	s[roomD1] = amphipodB
+	return s
+}
+
 // func init() {
 // s := situation{}
 // s[roomLeft0] = amphipodA
