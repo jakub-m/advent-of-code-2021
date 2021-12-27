@@ -33,8 +33,10 @@ func main() {
 	fmt.Println("RESULT", m)
 }
 
+const enableAStar = false
+const enableBackHops = true
+
 func Calc(initialSituation situation) (int, error) {
-	enableBackHops := true
 	backHops := make(map[situation][]situation) // only to extract the path
 
 	// dijkstra for implicit graph
@@ -99,10 +101,13 @@ func Calc(initialSituation situation) (int, error) {
 
 	if enableBackHops {
 		fmt.Println("get path")
+		prevDistance := 0
 		path := getPath(initialSituation, terminalSituation, distance, backHops)
 		for _, p := range path {
+			fmt.Println(distance[p]-prevDistance, distance[p])
 			fmt.Println(p)
 			fmt.Println()
+			prevDistance = distance[p]
 		}
 	}
 	return m, nil
@@ -505,14 +510,19 @@ func (h backlogHeap) Len() int {
 }
 
 func (h backlogHeap) Less(i, j int) bool {
-	// A* , we know which results are "closer" to the final solution.
-	ci := countInPlace(h[i].situation)
-	cj := countInPlace(h[j].situation)
+	if enableAStar {
+		// A* , we know which results are "closer" to the final solution.
+		ci := countInPlace(h[i].situation)
+		cj := countInPlace(h[j].situation)
 
-	if ci == cj {
-		return h[i].cost < h[j].cost
+		if ci == cj {
+			return h[i].cost < h[j].cost
+		} else {
+			return ci > cj
+		}
 	} else {
-		return ci > cj
+		// dijkstra
+		return h[i].cost < h[j].cost
 	}
 }
 
@@ -536,55 +546,55 @@ func countInPlace(s situation) int {
 	c := 0
 
 	if s[roomA0] == amphipodA {
-		c++
+		c += amphipodA.movementCost()
 	}
 	if s[roomA1] == amphipodA {
-		c++
+		c += amphipodA.movementCost()
 	}
 	if s[roomA2] == amphipodA {
-		c++
+		c += amphipodA.movementCost()
 	}
 	if s[roomA3] == amphipodA {
-		c++
+		c += amphipodA.movementCost()
 	}
 
 	if s[roomB0] == amphipodB {
-		c++
+		c += amphipodB.movementCost()
 	}
 	if s[roomB1] == amphipodB {
-		c++
+		c += amphipodB.movementCost()
 	}
 	if s[roomB2] == amphipodB {
-		c++
+		c += amphipodB.movementCost()
 	}
 	if s[roomB3] == amphipodB {
-		c++
+		c += amphipodB.movementCost()
 	}
 
 	if s[roomC0] == amphipodC {
-		c++
+		c += amphipodC.movementCost()
 	}
 	if s[roomC1] == amphipodC {
-		c++
+		c += amphipodC.movementCost()
 	}
 	if s[roomC2] == amphipodC {
-		c++
+		c += amphipodC.movementCost()
 	}
 	if s[roomC3] == amphipodC {
-		c++
+		c += amphipodC.movementCost()
 	}
 
 	if s[roomD0] == amphipodD {
-		c++
+		c += amphipodD.movementCost()
 	}
 	if s[roomD1] == amphipodD {
-		c++
+		c += amphipodD.movementCost()
 	}
 	if s[roomD2] == amphipodD {
-		c++
+		c += amphipodD.movementCost()
 	}
 	if s[roomD3] == amphipodD {
-		c++
+		c += amphipodD.movementCost()
 	}
 
 	return c
