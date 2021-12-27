@@ -49,9 +49,27 @@ func main() {
 		y = in[digit3] + 8
 		z3 := z2*26 + in[digit3] + 8
 
-		z := z3
+		// digit4
+		w = in[digit4]
+		x = z3%26 - 8
+
+		if x == in[digit4] {
+			x = 0
+		} else {
+			x = 1
+		}
+
+		// xdot is ok
+		// y = 25*x4dot + 1 // ok
+		z4 := (z3 / 26) * (25*x + 1)
+		y = (in[digit4] + 3) * x // ok
+		// z4 := (z3/26)*(25*x4dot+1) + (in[digit4]+3)*x4dot
+		//z4 = z4 + y
+		z := z4
+
 		fmt.Printf("%s\t%v\n", s, in)
 		fmt.Printf("w:%d x:%d y:%d z:%d\n", w, x, y, z)
+		fmt.Println()
 	}
 
 	// v, err := Calc(f)
