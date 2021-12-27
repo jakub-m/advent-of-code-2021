@@ -95,6 +95,11 @@ func Calc(initialSituation situation) (int, error) {
 
 	m := distance[terminalSituation]
 
+	path := getPath(initialSituation, terminalSituation, distance)
+	for _, p := range path {
+		fmt.Println(p)
+		fmt.Println()
+	}
 	return m, nil
 }
 
@@ -570,4 +575,30 @@ func countInPlace(s situation) int {
 	}
 
 	return c
+}
+
+func getPath(initialSituation, terminalSituation situation, distances map[situation]int) []situation {
+	s := terminalSituation
+
+	path := []situation{s}
+	for s != initialSituation {
+		sWithMinCost := s
+		for i, sc := range s.nextSituationsWithCosts() {
+			if i == 0 {
+				sWithMinCost = sc.situation
+			}
+
+			if distances[sc.situation] < distances[sWithMinCost] {
+				sWithMinCost = sc.situation
+			}
+		}
+
+		path = append([]situation{sWithMinCost}, path...)
+		s = sWithMinCost
+	}
+
+	// for i, j := 0, len(path)-1; i < j; i, j = i+1, j-1 {
+	// 	path[i], path[j] = path[j], path[i]
+	// }
+	return path
 }
