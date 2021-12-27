@@ -4,22 +4,55 @@ import (
 	"advent"
 	"fmt"
 	"io"
+	"math/rand"
 	"os"
 	"strconv"
 	"strings"
 )
 
+const (
+	digit1 int = iota
+	digit2
+	digit3
+	digit4
+	digit5
+	digit6
+	digit7
+	digit8
+	digit9
+)
+
 func main() {
-	f, err := os.Open("24/input2")
+	f, err := os.Open("24/input2test")
 	if err != nil {
 		panic(err)
 	}
 	defer f.Close()
-	v, err := Calc(f)
+
+	instructions, err := readInstructions(f)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("RESULT", v)
+
+	for {
+		i := rand.Intn(endInt + 1)
+		s := state{input: intToDigitsBase8plus1(i)}
+		s = applyInstructions(s, instructions)
+		//isValid := s.reg[operRegZ] == 0
+		in := intToDigitsBase8plus1(i)
+		w := in[digit2]
+		x := 1
+		y := in[digit2] + 9
+		z := (in[digit1]+12)*26 + in[digit2] + 9
+		fmt.Printf("%s\t%v\n", s, in)
+		fmt.Printf("w:%d x:%d y:%d z:%d\n", w, x, y, z)
+	}
+
+	// v, err := Calc(f)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// fmt.Println("RESULT", v)
 }
 
 var startInt int
@@ -97,6 +130,9 @@ func readInstructions(r io.Reader) ([]instruction, error) {
 func parseInstructionsFromLines(lines []string) ([]instruction, error) {
 	ii := []instruction{}
 	for _, line := range lines {
+		if strings.HasPrefix(line, "#") {
+			continue
+		}
 		p, err := parseLine(line)
 		if err != nil {
 			return nil, err
@@ -277,7 +313,8 @@ type state struct {
 }
 
 func (s state) String() string {
-	return fmt.Sprintf("w:%d x:%d y:%d z:%d inp:%v", s.reg[operRegW], s.reg[operRegX], s.reg[operRegY], s.reg[operRegZ], s.input)
+	//return fmt.Sprintf("w:%d x:%d y:%d z:%d inp:%v", s.reg[operRegW], s.reg[operRegX], s.reg[operRegY], s.reg[operRegZ], s.input)
+	return fmt.Sprintf("w:%d x:%d y:%d z:%d", s.reg[operRegW], s.reg[operRegX], s.reg[operRegY], s.reg[operRegZ])
 }
 
 var instrTable [instructionCount]instrFunc
