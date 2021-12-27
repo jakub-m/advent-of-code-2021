@@ -15,11 +15,22 @@ const (
 )
 
 func main() {
-	m, err := Calc(initialSituation1())
-	if err != nil {
-		panic(err)
+
+	initialSituation := initialSituationDebug()
+
+	fmt.Println(initialSituation)
+	fmt.Println("===========================")
+	fmt.Println()
+
+	for _, sc := range initialSituation.nextSituationsWithCosts() {
+		fmt.Println(sc.situation)
+		fmt.Println()
 	}
-	fmt.Println("RESULT", m)
+	// m, err := Calc(initialSituation1())
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// fmt.Println("RESULT", m)
 }
 
 func Calc(initialSituation situation) (int, error) {
@@ -139,6 +150,27 @@ func (s fieldState) movementCost() int {
 	default:
 		panic(fmt.Sprintf("movementCost? %+v", s))
 	}
+}
+
+func initialSituationDebug() situation {
+	s := situation{}
+	s[roomLeft1] = amphipodA
+	s[roomLeft0] = amphipodA
+	s[roomA0] = amphipodB
+	s[roomA1] = amphipodD
+	s[roomA2] = amphipodD
+	s[roomA3] = amphipodA
+	s[roomB2] = amphipodB
+	s[roomB3] = amphipodD
+	s[roomC1] = amphipodC
+	s[roomC2] = amphipodC
+	s[roomC3] = amphipodC
+	s[hallCD] = amphipodB
+	s[roomD2] = amphipodC
+	s[roomD3] = amphipodA
+	s[roomRight0] = amphipodB
+	s[roomRight1] = amphipodD
+	return s
 }
 
 func initialSituation1() situation {
