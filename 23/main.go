@@ -356,24 +356,24 @@ const (
 	burrowSize // must be last const
 )
 
-func moveFromAmphipodRoom0(s situation, roomOwner fieldState, start, destOutLeft, destOutRight, room1Index burrowIndex) []situationWithCost {
+func moveFromAmphipodRoom0(s situation, roomOwner fieldState, start, destOutLeft, destOutRight, roomBelow burrowIndex) []situationWithCost {
 	next := []situationWithCost{}
 
 	if s2, amp, ok := s.shift(start, destOutLeft); ok {
-		if amp != roomOwner || s[room1Index] != roomOwner {
+		if amp != roomOwner || s[roomBelow] != roomOwner {
 			sc := situationWithCost{s2, 2 * amp.movementCost()}
 			next = append(next, sc)
 		}
 	}
 
 	if s2, amp, ok := s.shift(start, destOutRight); ok {
-		if amp != roomOwner || s[room1Index] != roomOwner {
+		if amp != roomOwner || s[roomBelow] != roomOwner {
 			sc := situationWithCost{s2, 2 * amp.movementCost()}
 			next = append(next, sc)
 		}
 	}
 
-	if s2, amp, ok := s.shift(start, room1Index); ok {
+	if s2, amp, ok := s.shift(start, roomBelow); ok {
 		if amp == roomOwner {
 			sc := situationWithCost{s2, amp.movementCost()}
 			next = append(next, sc)
