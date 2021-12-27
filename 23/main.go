@@ -110,7 +110,7 @@ func (s situation) String() string {
 	return t
 }
 
-type fieldState int
+type fieldState uint8
 
 const (
 	emptyField fieldState = iota
@@ -215,19 +215,6 @@ func initialSituation2() situation {
 	return s
 }
 
-// func init() {
-// s := situation{}
-// s[roomLeft0] = amphipodA
-// s[roomA1] = amphipodA
-// s[roomB0] = amphipodB
-// s[roomB1] = amphipodB
-// s[roomC0] = amphipodC
-// s[roomC1] = amphipodC
-// s[roomD0] = amphipodD
-// s[roomD1] = amphipodD
-// initialSituation = s
-// }
-
 var terminalSituation situation
 
 func init() {
@@ -327,7 +314,7 @@ type situationWithCost struct {
 	cost      int
 }
 
-type burrowIndex int
+type burrowIndex uint8
 
 const (
 	roomLeft0 = iota
@@ -498,6 +485,7 @@ func (h backlogHeap) Len() int {
 	return len(h)
 }
 
+// TODO consider A* , we know which results are "closer" to the final solution.
 func (h backlogHeap) Less(i, j int) bool {
 	return h[i].cost < h[j].cost
 }
