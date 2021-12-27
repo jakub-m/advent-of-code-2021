@@ -16,7 +16,8 @@ const (
 
 func main() {
 
-	if true {
+	if false {
+		fmt.Println("DEBUG")
 		initialSituation := initialSituationDebug()
 		fmt.Println(initialSituation)
 		fmt.Println("===========================")
@@ -26,6 +27,7 @@ func main() {
 			fmt.Println(sc.situation)
 			fmt.Println()
 		}
+		return
 
 	}
 
@@ -37,9 +39,10 @@ func main() {
 }
 
 const enableAStar = false
-const enableBackHops = false
+const enableBackHops = true
 
 func Calc(initialSituation situation) (int, error) {
+	fmt.Println(initialSituation)
 	backHops := make(map[situation][]situation) // only to extract the path
 
 	// dijkstra for implicit graph
