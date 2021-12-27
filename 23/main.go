@@ -9,14 +9,13 @@ import (
 	"fmt"
 )
 
-const (
-	MaxUint = ^uint(0)
-	MaxInt  = int(MaxUint >> 1)
-)
+const enableAStar = false
+const enableBackHops = true
+const debugOnly = false
 
 func main() {
 
-	if false {
+	if debugOnly {
 		fmt.Println("DEBUG")
 		initialSituation := initialSituationDebug()
 		fmt.Println(initialSituation)
@@ -37,9 +36,6 @@ func main() {
 	}
 	fmt.Println("RESULT", m)
 }
-
-const enableAStar = false
-const enableBackHops = true
 
 func Calc(initialSituation situation) (int, error) {
 	fmt.Println(initialSituation)
@@ -177,26 +173,29 @@ func (s fieldState) movementCost() int {
 func initialSituationDebug() situation {
 	s := situation{}
 
+	s[roomLeft1] = amphipodA
+	s[roomLeft0] = amphipodA
+
 	s[roomA0] = amphipodB
 	s[roomA1] = amphipodD
 	s[roomA2] = amphipodD
 	s[roomA3] = amphipodA
 
-	s[roomB0] = amphipodC
-	s[roomB1] = amphipodC
-	s[roomB2] = amphipodB
-	s[roomB3] = amphipodD
+	s[hallAB] = amphipodD
 
-	s[roomC0] = amphipodB
-	s[roomC1] = amphipodB
-	s[roomC2] = amphipodA
+	s[roomB3] = amphipodB
+
+	s[roomC1] = amphipodC
+	s[roomC2] = amphipodC
 	s[roomC3] = amphipodC
 
-	s[roomD0] = amphipodA
+	s[hallCD] = amphipodB
+
 	s[roomD2] = amphipodC
 	s[roomD3] = amphipodA
 
-	s[roomRight0] = amphipodD
+	s[roomRight0] = amphipodB
+	s[roomRight1] = amphipodD
 
 	return s
 }
@@ -207,14 +206,17 @@ func initialSituation1() situation {
 	s[roomA1] = amphipodD
 	s[roomA2] = amphipodD
 	s[roomA3] = amphipodA
+
 	s[roomB0] = amphipodC
 	s[roomB1] = amphipodC
 	s[roomB2] = amphipodB
 	s[roomB3] = amphipodD
+
 	s[roomC0] = amphipodB
 	s[roomC1] = amphipodB
 	s[roomC2] = amphipodA
 	s[roomC3] = amphipodC
+
 	s[roomD0] = amphipodD
 	s[roomD1] = amphipodA
 	s[roomD2] = amphipodC
@@ -294,8 +296,7 @@ func (s situation) nextSituationsWithCosts() []situationWithCost {
 	next = append(next, moveFromAmphipodRoom12(s, amphipodA, roomA2, roomA1, roomA3)...)
 	next = append(next, moveFromAmphipodRoom3(s, amphipodA, roomA3, roomA2)...)
 
-	// hallAB
-	next = append(next, moveFromHallway(s, hallAB, roomLeft0, hallBC, amphipodA, roomIndicesA, amphipodB, roomIndicesB)...)
+	next = append(next, moveFromHallwayAB(s)...)
 
 	// roomB0+
 	next = append(next, moveFromAmphipodRoom0(s, amphipodB, roomB0,
@@ -307,8 +308,7 @@ func (s situation) nextSituationsWithCosts() []situationWithCost {
 	next = append(next, moveFromAmphipodRoom12(s, amphipodB, roomB2, roomB1, roomB3)...)
 	next = append(next, moveFromAmphipodRoom3(s, amphipodB, roomB3, roomB2)...)
 
-	// hallBC
-	next = append(next, moveFromHallway(s, hallBC, hallAB, hallCD, amphipodB, roomIndicesB, amphipodC, roomIndicesC)...)
+	next = append(next, moveFromHallwayBC(s)...)
 
 	// roomC0+
 	next = append(next, moveFromAmphipodRoom0(s, amphipodC, roomC0,
@@ -320,8 +320,7 @@ func (s situation) nextSituationsWithCosts() []situationWithCost {
 	next = append(next, moveFromAmphipodRoom12(s, amphipodC, roomC2, roomC1, roomC3)...)
 	next = append(next, moveFromAmphipodRoom3(s, amphipodC, roomC3, roomC2)...)
 
-	// hallCD
-	next = append(next, moveFromHallway(s, hallCD, hallBC, roomRight0, amphipodC, roomIndicesC, amphipodD, roomIndicesD)...)
+	next = append(next, moveFromHallwayCD(s)...)
 
 	// roomD0+
 	next = append(next, moveFromAmphipodRoom0(s, amphipodD, roomD0,
@@ -460,43 +459,121 @@ func moveFromAmphipodRoom0(s situation, roomOwner fieldState, start burrowIndex,
 	return next
 }
 
-func moveFromHallway(s situation, start burrowIndex,
-	hallwayIndexLeft, hallwayIndexRight burrowIndex,
-	roomOwnerLeft fieldState, roomIndicesLeft []burrowIndex,
-	roomOwnerRight fieldState, roomIndicesRight []burrowIndex) []situationWithCost {
-
+func moveFromHallwayAB(s situation) []situationWithCost {
+	start := hallAB
+	this := s[start]
 	next := []situationWithCost{}
 
-	// if s2, amp, ok := s.shift(start, hallwayIndexLeft); ok {
-	// 	if hallwayIndexLeft != roomLeft0 {
-	// 		sc := situationWithCost{s2, 2 * amp.movementCost()}
-	// 		next = append(next, sc)
-	// 	}
-	// }
-
-	// if s2, amp, ok := s.shift(start, hallwayIndexRight); ok {
-	// 	if hallwayIndexRight != roomRight0 {
-	// 		sc := situationWithCost{s2, 2 * amp.movementCost()}
-	// 		next = append(next, sc)
-	// 	}
-	// }
-
-	hasDifferentOnLeft := hasDifferentAmp(s, roomOwnerLeft, roomIndicesLeft)
-	if s2, amp, ok := s.shift(start, roomIndicesLeft[0]); ok {
-		if amp == roomOwnerLeft && !hasDifferentOnLeft {
-			sc := situationWithCost{s2, 2 * amp.movementCost()}
+	if this == amphipodA && !hasDifferentAmp(s, this, roomIndicesA) {
+		if s2, amp, ok := s.shift(start, roomIndicesA[0]); ok {
+			sc := situationWithCost{s2, 1 * 2 * amp.movementCost()}
 			next = append(next, sc)
 		}
 	}
 
-	hasDifferentOnRight := hasDifferentAmp(s, roomOwnerRight, roomIndicesRight)
-	if s2, amp, ok := s.shift(start, roomIndicesRight[0]); ok {
-		if amp == roomOwnerRight && !hasDifferentOnRight {
-			sc := situationWithCost{s2, 2 * amp.movementCost()}
+	if this == amphipodB && !hasDifferentAmp(s, this, roomIndicesB) {
+		if s2, amp, ok := s.shift(start, roomIndicesB[0]); ok {
+			sc := situationWithCost{s2, 1 * 2 * amp.movementCost()}
 			next = append(next, sc)
 		}
 	}
+
+	if this == amphipodC && !hasDifferentAmp(s, this, roomIndicesC) && allEmpty(s, hallBC) {
+		if s2, amp, ok := s.shift(start, roomIndicesC[0]); ok {
+			sc := situationWithCost{s2, 2 * 2 * amp.movementCost()}
+			next = append(next, sc)
+		}
+	}
+
+	if this == amphipodD && !hasDifferentAmp(s, this, roomIndicesD) && allEmpty(s, hallBC, hallCD) {
+		if s2, amp, ok := s.shift(start, roomIndicesD[0]); ok {
+			sc := situationWithCost{s2, 3 * 2 * amp.movementCost()}
+			next = append(next, sc)
+		}
+	}
+
 	return next
+}
+
+func moveFromHallwayBC(s situation) []situationWithCost {
+	start := hallBC
+	this := s[start]
+	next := []situationWithCost{}
+
+	if this == amphipodA && !hasDifferentAmp(s, this, roomIndicesA) && allEmpty(s, hallAB) {
+		if s2, amp, ok := s.shift(start, roomIndicesA[0]); ok {
+			sc := situationWithCost{s2, 2 * 2 * amp.movementCost()}
+			next = append(next, sc)
+		}
+	}
+
+	if this == amphipodB && !hasDifferentAmp(s, this, roomIndicesB) {
+		if s2, amp, ok := s.shift(start, roomIndicesB[0]); ok {
+			sc := situationWithCost{s2, 1 * 2 * amp.movementCost()}
+			next = append(next, sc)
+		}
+	}
+
+	if this == amphipodC && !hasDifferentAmp(s, this, roomIndicesC) {
+		if s2, amp, ok := s.shift(start, roomIndicesC[0]); ok {
+			sc := situationWithCost{s2, 1 * 2 * amp.movementCost()}
+			next = append(next, sc)
+		}
+	}
+
+	if this == amphipodD && !hasDifferentAmp(s, this, roomIndicesD) && allEmpty(s, hallCD) {
+		if s2, amp, ok := s.shift(start, roomIndicesD[0]); ok {
+			sc := situationWithCost{s2, 2 * 2 * amp.movementCost()}
+			next = append(next, sc)
+		}
+	}
+
+	return next
+}
+
+func moveFromHallwayCD(s situation) []situationWithCost {
+	start := hallCD
+	this := s[start]
+	next := []situationWithCost{}
+
+	if this == amphipodA && !hasDifferentAmp(s, this, roomIndicesA) && allEmpty(s, hallAB, hallBC) {
+		if s2, amp, ok := s.shift(start, roomIndicesA[0]); ok {
+			sc := situationWithCost{s2, 3 * 2 * amp.movementCost()}
+			next = append(next, sc)
+		}
+	}
+
+	if this == amphipodB && !hasDifferentAmp(s, this, roomIndicesB) && allEmpty(s, hallBC) {
+		if s2, amp, ok := s.shift(start, roomIndicesB[0]); ok {
+			sc := situationWithCost{s2, 2 * 2 * amp.movementCost()}
+			next = append(next, sc)
+		}
+	}
+
+	if this == amphipodC && !hasDifferentAmp(s, this, roomIndicesC) {
+		if s2, amp, ok := s.shift(start, roomIndicesC[0]); ok {
+			sc := situationWithCost{s2, 1 * 2 * amp.movementCost()}
+			next = append(next, sc)
+		}
+	}
+
+	if this == amphipodD && !hasDifferentAmp(s, this, roomIndicesD) {
+		if s2, amp, ok := s.shift(start, roomIndicesD[0]); ok {
+			sc := situationWithCost{s2, 1 * 2 * amp.movementCost()}
+			next = append(next, sc)
+		}
+	}
+
+	return next
+}
+
+func allEmpty(s situation, indices ...burrowIndex) bool {
+	for _, i := range indices {
+		if s[i] != emptyField {
+			return false
+		}
+	}
+	return true
 }
 
 func moveFromAmphipodRoom12(s situation, roomOwner fieldState, start, roomAbove burrowIndex, roomsBelow ...burrowIndex) []situationWithCost {
@@ -579,6 +656,11 @@ func moveSideRoomLeft0(s situation) []situationWithCost {
 		}
 	}
 
+	if s2, amp, ok := s.shift(start, roomLeft1); ok {
+		sc := situationWithCost{s2, amp.movementCost()}
+		next = append(next, sc)
+	}
+
 	return next
 }
 
@@ -627,6 +709,11 @@ func moveSideRoomRight0(s situation) []situationWithCost {
 				next = append(next, sc)
 			}
 		}
+	}
+
+	if s2, amp, ok := s.shift(start, roomRight1); ok {
+		sc := situationWithCost{s2, amp.movementCost()}
+		next = append(next, sc)
 	}
 
 	return next
