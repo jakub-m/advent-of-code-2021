@@ -17,5 +17,5 @@ func TestCalc1(t *testing.T) {
 func TestCalc2(t *testing.T) {
 	v, err := Calc(initialSituation2())
 	assert.NoError(t, err)
-	assert.Equal(t, 1, v)
+	assert.Equal(t, 46120, v)
 }
