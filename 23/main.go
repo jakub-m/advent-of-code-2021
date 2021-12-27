@@ -65,6 +65,7 @@ func Calc(initialSituation situation) (int, error) {
 		}
 		if iter == 10000 {
 			advent.Println("len(backlog)", len(*backlog), "currentDistance", currentDistance)
+			advent.Println(current)
 			iter = 0
 		}
 
@@ -485,9 +486,16 @@ func (h backlogHeap) Len() int {
 	return len(h)
 }
 
-// TODO consider A* , we know which results are "closer" to the final solution.
 func (h backlogHeap) Less(i, j int) bool {
-	return h[i].cost < h[j].cost
+	// A* , we know which results are "closer" to the final solution.
+	ci := countInPlace(h[i].situation)
+	cj := countInPlace(h[j].situation)
+
+	if ci == cj {
+		return h[i].cost < h[j].cost
+	} else {
+		return ci > cj
+	}
 }
 
 func (h backlogHeap) Swap(i, j int) {
@@ -504,4 +512,62 @@ func (h *backlogHeap) Pop() interface{} {
 	x := old[n-1]
 	*h = old[0 : n-1]
 	return x
+}
+
+func countInPlace(s situation) int {
+	c := 0
+
+	if s[roomA0] == amphipodA {
+		c++
+	}
+	if s[roomA1] == amphipodA {
+		c++
+	}
+	if s[roomA2] == amphipodA {
+		c++
+	}
+	if s[roomA3] == amphipodA {
+		c++
+	}
+
+	if s[roomB0] == amphipodB {
+		c++
+	}
+	if s[roomB1] == amphipodB {
+		c++
+	}
+	if s[roomB2] == amphipodB {
+		c++
+	}
+	if s[roomB3] == amphipodB {
+		c++
+	}
+
+	if s[roomC0] == amphipodC {
+		c++
+	}
+	if s[roomC1] == amphipodC {
+		c++
+	}
+	if s[roomC2] == amphipodC {
+		c++
+	}
+	if s[roomC3] == amphipodC {
+		c++
+	}
+
+	if s[roomD0] == amphipodD {
+		c++
+	}
+	if s[roomD1] == amphipodD {
+		c++
+	}
+	if s[roomD2] == amphipodD {
+		c++
+	}
+	if s[roomD3] == amphipodD {
+		c++
+	}
+
+	return c
 }
