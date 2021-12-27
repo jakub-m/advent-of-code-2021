@@ -4,31 +4,86 @@ import (
 	"advent"
 	"fmt"
 	"io"
+	"os"
 	"strconv"
 	"strings"
 )
 
 func main() {
-	Calc(strings.NewReader(""), []int{})
+	f, err := os.Open("24/input2")
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+	v, err := Calc(f)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("RESULT", v)
 }
 
-func Calc(r io.Reader, input []int) (int, state, error) {
+var startInt int
+var endInt int
+
+func init() {
+	startInt = 0
+
+	e, err := strconv.ParseInt("88888888888888", 9, 64)
+	if err != nil {
+		panic(err)
+	}
+	endInt = int(e)
+}
+
+func Calc(r io.Reader) (int, error) {
+	instructions, err := readInstructions(r)
+	if err != nil {
+		return 0, err
+	}
+
+	in := intToDigitsBase8plus1(startInt)
+
+	s := state{input: in}
+	s = applyInstructions(s, instructions)
+	return 0, nil
+}
+
+func intToDigitsBase8plus1(in int) []int {
+	ints := make([]int, 14)
+	s := strconv.FormatInt(int64(in), 9)
+	rr := []rune(s)
+	for i := 13; i >= 0; i++ {
+		if len(rr) > 0 {
+			c := rr[len(rr)-1]
+			rr = rr[:len(rr)-1]
+			v := advent.Atoi(fmt.Sprint(c)) + 1
+			ints[i] = v
+		} else {
+			ints[i] = 1
+		}
+	}
+
+	return ints
+}
+
+func applyInstructions(s state, instructions []instruction) state {
+	for i := range instructions {
+		s = eval(s, instructions[i])
+	}
+	return s
+}
+
+func readInstructions(r io.Reader) ([]instruction, error) {
 	lines, err := advent.ReadLinesTrim(r)
 	if err != nil {
-		return 0, state{}, err
+		return nil, err
 	}
 
 	instructions, err := parseInstructionsFromLines(lines)
 	if err != nil {
-		return 0, state{}, err
+		return nil, err
 	}
-
-	s := state{input: input}
-	for i := range instructions {
-		s = eval(s, instructions[i])
-	}
-
-	return int(s.reg[operRegZ]), s, nil
+	return instructions, nil
 }
 
 func parseInstructionsFromLines(lines []string) ([]instruction, error) {

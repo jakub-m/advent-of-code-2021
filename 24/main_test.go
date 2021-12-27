@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"os"
+	"io"
 	"strings"
 	"testing"
 
@@ -22,19 +22,19 @@ add x w
 mod x 2
 div w 2
 mod w 2`
-	_, s, err := Calc(strings.NewReader(strings.Trim(in, "\n")), []int{9})
+	s, err := calcStateFromInput(strings.NewReader(strings.Trim(in, "\n")), []int{9})
 	assert.NoError(t, err)
 	assert.Equal(t, [4]int{1, 0, 0, 1}, s.reg)
 
-	_, s, err = Calc(strings.NewReader(strings.Trim(in, "\n")), []int{0})
+	s, err = calcStateFromInput(strings.NewReader(strings.Trim(in, "\n")), []int{0})
 	assert.NoError(t, err)
 	assert.Equal(t, [4]int{0, 0, 0, 0}, s.reg)
 
-	_, s, err = Calc(strings.NewReader(strings.Trim(in, "\n")), []int{1})
+	s, err = calcStateFromInput(strings.NewReader(strings.Trim(in, "\n")), []int{1})
 	assert.NoError(t, err)
 	assert.Equal(t, [4]int{0, 0, 0, 1}, s.reg)
 
-	_, s, err = Calc(strings.NewReader(strings.Trim(in, "\n")), []int{8})
+	s, err = calcStateFromInput(strings.NewReader(strings.Trim(in, "\n")), []int{8})
 	assert.NoError(t, err)
 	assert.Equal(t, [4]int{1, 0, 0, 0}, s.reg)
 }
@@ -47,23 +47,39 @@ mul z 3
 eql z x
 `
 
-	_, s, err := Calc(strings.NewReader(strings.Trim(in, "\n")), []int{6, 2})
+	s, err := calcStateFromInput(strings.NewReader(strings.Trim(in, "\n")), []int{6, 2})
 	assert.NoError(t, err)
 	assert.Equal(t, 0, s.reg[operRegZ])
 
-	_, s, err = Calc(strings.NewReader(strings.Trim(in, "\n")), []int{2, 6})
+	s, err = calcStateFromInput(strings.NewReader(strings.Trim(in, "\n")), []int{2, 6})
 	assert.NoError(t, err)
 	assert.Equal(t, 1, s.reg[operRegZ])
 }
 
-func TestCalc2(t *testing.T) {
-	f, err := os.Open("input2")
-	assert.NoError(t, err)
-	c := 1
-	v, s, err := Calc(f, []int{c, c, c, c, c, c, c, c, c, c, c, c, c, c})
-	//v, s, err := Calc(f, []int{9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9})
-	isValid := v == 0
-	assert.NoError(t, err)
-	fmt.Println(s)
-	assert.Equal(t, true, isValid)
+// func TestCalc2(t *testing.T) {
+// 	f, err := os.Open("input2")
+// 	assert.NoError(t, err)
+// 	c := 1
+// 	v, err := calcStateFromInput(f, []int{c, c, c, c, c, c, c, c, c, c, c, c, c, c})
+// 	//v, s, err := Calc(f, []int{9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9})
+// 	isValid := v == 0
+// 	assert.NoError(t, err)
+// 	fmt.Println(s)
+// 	assert.Equal(t, true, isValid)
+// }
+
+func TestIntConf(t *testing.T) {
+	i := intToDigitsBase8plus1(startInt)
+	fmt.Println(i)
+	assert.True(t, false)
+}
+
+func calcStateFromInput(r io.Reader, input []int) (state, error) {
+	instructions, err := readInstructions(r)
+	if err != nil {
+		return state{}, err
+	}
+	s := state{input: input}
+	s = applyInstructions(s, instructions)
+	return s, nil
 }
