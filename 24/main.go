@@ -41,7 +41,7 @@ func Calc(r io.Reader) (int, error) {
 		return 0, err
 	}
 
-	for i := startInt; i <= endInt; i++ {
+	for i := endInt; i >= startInt; i-- {
 		s := state{input: intToDigitsBase8plus1(i)}
 		s = applyInstructions(s, instructions)
 		isValid := s.reg[operRegZ] == 0
