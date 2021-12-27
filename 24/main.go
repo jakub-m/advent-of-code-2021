@@ -43,7 +43,13 @@ func main() {
 		w := in[digit2]
 		x := 1
 		y := in[digit2] + 9
-		z := (in[digit1]+12)*26 + in[digit2] + 9
+		z2 := (in[digit1]+12)*26 + in[digit2] + 9
+
+		w = in[digit3]
+		y = in[digit3] + 8
+		z3 := z2*26 + in[digit3] + 8
+
+		z := z3
 		fmt.Printf("%s\t%v\n", s, in)
 		fmt.Printf("w:%d x:%d y:%d z:%d\n", w, x, y, z)
 	}
