@@ -16,16 +16,19 @@ const (
 
 func main() {
 
-	// initialSituation := initialSituationDebug()
+	if true {
+		initialSituation := initialSituationDebug()
+		fmt.Println(initialSituation)
+		fmt.Println("===========================")
+		fmt.Println()
 
-	// fmt.Println(initialSituation)
-	// fmt.Println("===========================")
-	// fmt.Println()
+		for _, sc := range initialSituation.nextSituationsWithCosts() {
+			fmt.Println(sc.situation)
+			fmt.Println()
+		}
 
-	// for _, sc := range initialSituation.nextSituationsWithCosts() {
-	// 	fmt.Println(sc.situation)
-	// 	fmt.Println()
-	// }
+	}
+
 	m, err := Calc(initialSituation1())
 	if err != nil {
 		panic(err)
@@ -34,7 +37,7 @@ func main() {
 }
 
 const enableAStar = false
-const enableBackHops = true
+const enableBackHops = false
 
 func Calc(initialSituation situation) (int, error) {
 	backHops := make(map[situation][]situation) // only to extract the path
@@ -99,7 +102,7 @@ func Calc(initialSituation situation) (int, error) {
 
 	m := distance[terminalSituation]
 
-	if enableBackHops {
+	if m > 0 && enableBackHops {
 		fmt.Println("get path")
 		prevDistance := 0
 		path := getPath(initialSituation, terminalSituation, distance, backHops)
@@ -170,22 +173,28 @@ func (s fieldState) movementCost() int {
 
 func initialSituationDebug() situation {
 	s := situation{}
-	s[roomLeft1] = amphipodA
-	s[roomLeft0] = amphipodA
+
 	s[roomA0] = amphipodB
 	s[roomA1] = amphipodD
 	s[roomA2] = amphipodD
 	s[roomA3] = amphipodA
-	s[roomB3] = amphipodB
-	s[hallAB] = amphipodD
-	s[roomC1] = amphipodC
-	s[roomC2] = amphipodC
+
+	s[roomB0] = amphipodC
+	s[roomB1] = amphipodC
+	s[roomB2] = amphipodB
+	s[roomB3] = amphipodD
+
+	s[roomC0] = amphipodB
+	s[roomC1] = amphipodB
+	s[roomC2] = amphipodA
 	s[roomC3] = amphipodC
-	s[hallCD] = amphipodB
+
+	s[roomD0] = amphipodA
 	s[roomD2] = amphipodC
 	s[roomD3] = amphipodA
-	s[hallCD] = amphipodB
-	s[roomRight1] = amphipodD
+
+	s[roomRight0] = amphipodD
+
 	return s
 }
 
@@ -404,26 +413,26 @@ func moveFromAmphipodRoom0(s situation, roomOwner fieldState, start burrowIndex,
 	if s[start] != roomOwner || roomsBelowHaveDifferentAmp {
 
 		//move to the left
-		prevLeft := start
 		prevCostLeft := 0
 		for _, rLeft := range roomsLeft {
-			if s2, amp, ok := s.shift(prevLeft, rLeft); ok {
+			if s2, amp, ok := s.shift(start, rLeft); ok {
 				prevCostLeft += 2 * amp.movementCost()
 				sc := situationWithCost{s2, prevCostLeft}
 				next = append(next, sc)
-				prevLeft = rLeft
+			} else {
+				break
 			}
 		}
 
 		//move to the right
-		prevRight := start
 		prevCostRight := 0
 		for _, rRight := range roomsRight {
-			if s2, amp, ok := s.shift(prevRight, rRight); ok {
+			if s2, amp, ok := s.shift(start, rRight); ok {
 				prevCostRight += 2 * amp.movementCost()
 				sc := situationWithCost{s2, prevCostRight}
 				next = append(next, sc)
-				prevRight = rRight
+			} else {
+				break
 			}
 		}
 	}
