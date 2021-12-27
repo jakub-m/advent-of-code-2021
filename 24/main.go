@@ -64,7 +64,7 @@ func main() {
 		z4 := (z3 / 26) * (25*x + 1)
 		y = (in[digit4] + 3) * x // ok
 		// z4 := (z3/26)*(25*x4dot+1) + (in[digit4]+3)*x4dot
-		//z4 = z4 + y
+		z4 = z4 + y
 		z := z4
 
 		fmt.Printf("%s\t%v\n", s, in)
