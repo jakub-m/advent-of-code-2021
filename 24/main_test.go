@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"io"
 	"strings"
 	"testing"
@@ -69,9 +68,9 @@ eql z x
 // }
 
 func TestIntConf(t *testing.T) {
-	i := intToDigitsBase8plus1(startInt)
-	fmt.Println(i)
-	assert.True(t, false)
+	assert.Equal(t, []int{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, intToDigitsBase8plus1(startInt))
+	assert.Equal(t, []int{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1}, intToDigitsBase8plus1(9))
+	assert.Equal(t, []int{9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9}, intToDigitsBase8plus1(endInt))
 }
 
 func calcStateFromInput(r io.Reader, input []int) (state, error) {

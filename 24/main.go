@@ -41,22 +41,30 @@ func Calc(r io.Reader) (int, error) {
 		return 0, err
 	}
 
-	in := intToDigitsBase8plus1(startInt)
+	for i := startInt; i <= endInt; i++ {
+		s := state{input: intToDigitsBase8plus1(i)}
+		s = applyInstructions(s, instructions)
+		isValid := s.reg[operRegZ] == 0
+		if isValid {
+			fmt.Printf("%v\tz %d\t%v\tin %d\t%v\n", isValid, s.reg[operRegZ], intToDigitsBase8plus1(s.reg[operRegZ]), i, intToDigitsBase8plus1(i))
+		}
+	}
 
-	s := state{input: in}
-	s = applyInstructions(s, instructions)
 	return 0, nil
 }
 
 func intToDigitsBase8plus1(in int) []int {
 	ints := make([]int, 14)
 	s := strconv.FormatInt(int64(in), 9)
-	rr := []rune(s)
-	for i := 13; i >= 0; i++ {
-		if len(rr) > 0 {
-			c := rr[len(rr)-1]
-			rr = rr[:len(rr)-1]
-			v := advent.Atoi(fmt.Sprint(c)) + 1
+	ss := []string{}
+	for _, c := range s {
+		ss = append(ss, fmt.Sprintf("%c", c))
+	}
+	for i := 13; i >= 0; i-- {
+		if len(ss) > 0 {
+			c := ss[len(ss)-1]
+			ss = ss[:len(ss)-1]
+			v := advent.Atoi(c) + 1
 			ints[i] = v
 		} else {
 			ints[i] = 1
@@ -184,7 +192,7 @@ func eval(s state, ins instruction) state {
 		val2 = s.reg[ins.op2]
 	}
 
-	fmt.Printf("%s %s(%d) %s(%d)\n", ins, ins.op1, val1, ins.op2, val2)
+	// fmt.Printf("%s %s(%d) %s(%d)\n", ins, ins.op1, val1, ins.op2, val2)
 
 	return instrTable[ins.id](s, ins.op1, val1, val2)
 }
@@ -287,7 +295,7 @@ func instFuncInp(s state, dest operand, val1, val2 int) state {
 	inp := s.input[0]
 	s.input = s.input[1:]
 	s.reg[dest] = inp
-	fmt.Printf("inp %s (%d)\n", dest, inp)
+	// fmt.Printf("inp %s (%d)\n", dest, inp)
 	return s
 }
 
