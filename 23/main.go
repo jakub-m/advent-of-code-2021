@@ -34,14 +34,8 @@ func main() {
 }
 
 func Calc(initialSituation situation) (int, error) {
-	if advent.PrintEnabled {
-		fmt.Println("initial")
-		fmt.Println(initialSituation)
-		fmt.Println()
-		fmt.Println("terminal")
-		fmt.Println(terminalSituation)
-		fmt.Println()
-	}
+	enableBackHops := true
+	backHops := make(map[situation][]situation) // only to extract the path
 
 	// dijkstra for implicit graph
 	visited := make(map[situation]bool)
@@ -51,7 +45,6 @@ func Calc(initialSituation situation) (int, error) {
 	backlog := &backlogHeap{{initialSituation, 0}}
 	backlogSet := make(map[situation]bool)
 	iter := 0
-	backHops := make(map[situation][]situation) // only to extract the path
 	for len(*backlog) > 0 {
 		iter++
 		backlogHead := heap.Pop(backlog).(situationWithCost)
@@ -86,10 +79,13 @@ func Calc(initialSituation situation) (int, error) {
 				heap.Push(backlog, situationWithCost{sc.situation, distance[sc.situation]})
 				backlogSet[sc.situation] = true
 
-				if _, ok := backHops[sc.situation]; !ok {
-					backHops[sc.situation] = []situation{}
+				if enableBackHops {
+					if _, ok := backHops[sc.situation]; !ok {
+						backHops[sc.situation] = []situation{}
+					}
+					backHops[sc.situation] = append(backHops[sc.situation], current)
+
 				}
-				backHops[sc.situation] = append(backHops[sc.situation], current)
 			}
 		}
 		visited[current] = true
@@ -101,11 +97,13 @@ func Calc(initialSituation situation) (int, error) {
 
 	m := distance[terminalSituation]
 
-	fmt.Println("get path")
-	path := getPath(initialSituation, terminalSituation, distance, backHops)
-	for _, p := range path {
-		fmt.Println(p)
-		fmt.Println()
+	if enableBackHops {
+		fmt.Println("get path")
+		path := getPath(initialSituation, terminalSituation, distance, backHops)
+		for _, p := range path {
+			fmt.Println(p)
+			fmt.Println()
+		}
 	}
 	return m, nil
 }
@@ -251,6 +249,11 @@ func init() {
 	terminalSituation = s
 }
 
+var roomIndicesA = []burrowIndex{roomA0, roomA1, roomA2, roomA3}
+var roomIndicesB = []burrowIndex{roomB0, roomB1, roomB2, roomB3}
+var roomIndicesC = []burrowIndex{roomC0, roomC1, roomC2, roomC3}
+var roomIndicesD = []burrowIndex{roomD0, roomD1, roomD2, roomD3}
+
 func (s situation) nextSituationsWithCosts() []situationWithCost {
 	if s == terminalSituation {
 		return []situationWithCost{{
@@ -273,7 +276,7 @@ func (s situation) nextSituationsWithCosts() []situationWithCost {
 	next = append(next, moveFromAmphipodRoom3(s, amphipodA, roomA3, roomA2)...)
 
 	// hallAB
-	next = append(next, moveFromHallway(s, hallAB, roomLeft0, hallBC, amphipodA, roomA0, amphipodB, roomB0)...)
+	next = append(next, moveFromHallway(s, hallAB, roomLeft0, hallBC, amphipodA, roomIndicesA, amphipodB, roomIndicesB)...)
 
 	// roomB0+
 	next = append(next, moveFromAmphipodRoom0(s, amphipodB, roomB0, hallAB, hallBC, roomB1, roomB2, roomB3)...)
@@ -282,7 +285,7 @@ func (s situation) nextSituationsWithCosts() []situationWithCost {
 	next = append(next, moveFromAmphipodRoom3(s, amphipodB, roomB3, roomB2)...)
 
 	// hallBC
-	next = append(next, moveFromHallway(s, hallBC, hallAB, hallCD, amphipodB, roomB0, amphipodC, roomC0)...)
+	next = append(next, moveFromHallway(s, hallBC, hallAB, hallCD, amphipodB, roomIndicesB, amphipodC, roomIndicesC)...)
 
 	// roomC0+
 	next = append(next, moveFromAmphipodRoom0(s, amphipodC, roomC0, hallBC, hallCD, roomC1, roomC2, roomC3)...)
@@ -291,7 +294,7 @@ func (s situation) nextSituationsWithCosts() []situationWithCost {
 	next = append(next, moveFromAmphipodRoom3(s, amphipodC, roomC3, roomC2)...)
 
 	// hallCD
-	next = append(next, moveFromHallway(s, hallCD, hallBC, roomRight0, amphipodC, roomC0, amphipodD, roomD0)...)
+	next = append(next, moveFromHallway(s, hallCD, hallBC, roomRight0, amphipodC, roomIndicesC, amphipodD, roomIndicesD)...)
 
 	// roomD0+
 	next = append(next, moveFromAmphipodRoom0(s, amphipodD, roomD0, hallCD, roomRight0, roomD1, roomD2, roomD3)...)
@@ -397,8 +400,8 @@ func moveFromAmphipodRoom0(s situation, roomOwner fieldState, start, destOutLeft
 
 func moveFromHallway(s situation, start burrowIndex,
 	hallwayIndexLeft, hallwayIndexRight burrowIndex,
-	roomOwnerLeft fieldState, roomIndexLeft burrowIndex,
-	roomOwnerRitht fieldState, roomIndexRight burrowIndex) []situationWithCost {
+	roomOwnerLeft fieldState, roomIndicesLeft []burrowIndex,
+	roomOwnerRight fieldState, roomIndicesRight []burrowIndex) []situationWithCost {
 
 	next := []situationWithCost{}
 
@@ -412,15 +415,17 @@ func moveFromHallway(s situation, start burrowIndex,
 		next = append(next, sc)
 	}
 
-	if s2, amp, ok := s.shift(start, roomIndexLeft); ok {
-		if amp == roomOwnerLeft {
+	hasDifferentOnLeft := hasDifferentAmp(s, roomOwnerLeft, roomIndicesLeft)
+	if s2, amp, ok := s.shift(start, roomIndicesLeft[0]); ok {
+		if amp == roomOwnerLeft && !hasDifferentOnLeft {
 			sc := situationWithCost{s2, 2 * amp.movementCost()}
 			next = append(next, sc)
 		}
 	}
 
-	if s2, amp, ok := s.shift(start, roomIndexRight); ok {
-		if amp == roomOwnerRitht {
+	hasDifferentOnRight := hasDifferentAmp(s, roomOwnerRight, roomIndicesRight)
+	if s2, amp, ok := s.shift(start, roomIndicesRight[0]); ok {
+		if amp == roomOwnerRight && !hasDifferentOnRight {
 			sc := situationWithCost{s2, 2 * amp.movementCost()}
 			next = append(next, sc)
 		}
