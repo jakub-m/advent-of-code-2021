@@ -51,6 +51,7 @@ func Calc(initialSituation situation) (int, error) {
 	backlog := &backlogHeap{{initialSituation, 0}}
 	backlogSet := make(map[situation]bool)
 	iter := 0
+	backHops := make(map[situation][]situation) // only to extract the path
 	for len(*backlog) > 0 {
 		iter++
 		backlogHead := heap.Pop(backlog).(situationWithCost)
@@ -84,6 +85,11 @@ func Calc(initialSituation situation) (int, error) {
 			if !backlogSet[sc.situation] {
 				heap.Push(backlog, situationWithCost{sc.situation, distance[sc.situation]})
 				backlogSet[sc.situation] = true
+
+				if _, ok := backHops[sc.situation]; !ok {
+					backHops[sc.situation] = []situation{}
+				}
+				backHops[sc.situation] = append(backHops[sc.situation], current)
 			}
 		}
 		visited[current] = true
@@ -95,7 +101,8 @@ func Calc(initialSituation situation) (int, error) {
 
 	m := distance[terminalSituation]
 
-	path := getPath(initialSituation, terminalSituation, distance)
+	fmt.Println("get path")
+	path := getPath(initialSituation, terminalSituation, distance, backHops)
 	for _, p := range path {
 		fmt.Println(p)
 		fmt.Println()
@@ -577,28 +584,25 @@ func countInPlace(s situation) int {
 	return c
 }
 
-func getPath(initialSituation, terminalSituation situation, distances map[situation]int) []situation {
-	s := terminalSituation
+func getPath(initialSituation, terminalSituation situation, distances map[situation]int, backHops map[situation][]situation) []situation {
+	current := terminalSituation
 
-	path := []situation{s}
-	for s != initialSituation {
-		sWithMinCost := s
-		for i, sc := range s.nextSituationsWithCosts() {
+	path := []situation{current}
+	for current != initialSituation {
+		var sWithMinCost situation
+		for i, s := range backHops[current] {
 			if i == 0 {
-				sWithMinCost = sc.situation
+				sWithMinCost = s
 			}
 
-			if distances[sc.situation] < distances[sWithMinCost] {
-				sWithMinCost = sc.situation
+			if distances[s] < distances[sWithMinCost] {
+				sWithMinCost = s
 			}
 		}
 
 		path = append([]situation{sWithMinCost}, path...)
-		s = sWithMinCost
+		current = sWithMinCost
 	}
 
-	// for i, j := 0, len(path)-1; i < j; i, j = i+1, j-1 {
-	// 	path[i], path[j] = path[j], path[i]
-	// }
 	return path
 }
