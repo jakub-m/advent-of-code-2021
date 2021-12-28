@@ -63,12 +63,19 @@ func main() {
 
 		y = (in[digit4] + 3) * x4dot // ok
 		z4 := (z3/26)*(25*x4dot+1) + (in[digit4]+3)*x4dot
-		z := z4
+		//z := z4
+
+		// d5
 
 		w = in[digit5]
 		x = 1
 		y = in[digit5]
-		z = 26*z4 + in[digit5]
+		z5 := 26*z4 + in[digit5]
+		z := z5
+
+		// d6
+		w = in[digit6]
+		x = 1
 
 		strState := fmt.Sprintf("%s", s)
 		strInterp := fmt.Sprintf("w:%d x:%d y:%d z:%d", w, x, y, z)
