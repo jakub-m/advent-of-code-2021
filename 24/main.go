@@ -40,18 +40,14 @@ func main() {
 		s = applyInstructions(s, instructions)
 		//isValid := s.reg[operRegZ] == 0
 		in := intToDigitsBase8plus1(i)
-		w := in[digit2]
-		x := 1
-		y := in[digit2] + 9
+		w := -1
+		x := -1
+		y := -1
 		z2 := (in[digit1]+12)*26 + in[digit2] + 9
 
-		w = in[digit3]
-		y = in[digit3] + 8
 		z3 := z2*26 + in[digit3] + 8
 
 		// digit4
-		w = in[digit4]
-		x = (z3%26 - 8)
 
 		x4dot := 0
 		if (z3%26 - 8) == in[digit4] {
@@ -61,15 +57,12 @@ func main() {
 		}
 		x = x4dot
 
-		y = (in[digit4] + 3) * x4dot // ok
 		z4 := (z3/26)*(25*x4dot+1) + (in[digit4]+3)*x4dot
 		//z := z4
 
 		// d5
 
-		w = in[digit5]
 		x = 1
-		y = in[digit5]
 		z5 := 26*z4 + in[digit5]
 
 		// d6
