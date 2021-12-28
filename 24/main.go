@@ -70,7 +70,15 @@ func main() {
 		x = 1
 		y = in[digit6] + 11
 		z6 := (26 * z5) + in[digit6] + 11
+
+		//z6 := (26 * (26*(((((in[digit1]+12)*26+in[digit2]+9)*26+in[digit3]+8)/26)*(25*x4dot+1)+(in[digit4]+3)*x4dot) + in[digit5])) + in[digit6] + 11
 		z := z6
+
+		// d7
+		w = in[digit7]
+		x = 1
+		y = in[digit7] + 10
+		z = z6*26 + in[digit7] + 10
 
 		strState := fmt.Sprintf("%s", s)
 		strInterp := fmt.Sprintf("w:%d x:%d y:%d z:%d", w, x, y, z)
