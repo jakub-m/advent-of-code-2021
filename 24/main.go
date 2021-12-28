@@ -65,11 +65,18 @@ func main() {
 		z4 := (z3/26)*(25*x4dot+1) + (in[digit4]+3)*x4dot
 		z := z4
 
-		if fmt.Sprintf("%s", s) == fmt.Sprintf("w:%d x:%d y:%d z:%d", w, x, y, z) {
+		w = in[digit5]
+		x = 1
+		y = in[digit5]
+		z = 26*z4 + in[digit5]
+
+		strState := fmt.Sprintf("%s", s)
+		strInterp := fmt.Sprintf("w:%d x:%d y:%d z:%d", w, x, y, z)
+		if strState == strInterp {
 			fmt.Println("ok")
 		} else {
-			fmt.Printf("%s\t%v\n", s, in)
-			fmt.Printf("w:%d x:%d y:%d z:%d\n", w, x, y, z)
+			fmt.Printf("%s\t%v\n", strState, in)
+			fmt.Println(strInterp)
 			fmt.Println()
 		}
 	}
