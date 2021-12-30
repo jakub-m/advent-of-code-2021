@@ -8,8 +8,20 @@ import (
 
 func Calc(r io.Reader) (int, error) {
 	heard := loadHeard(r)
-	fmt.Println(heard)
-	return 0, nil
+
+	var i int
+	for {
+		advent.Println("i", i)
+		advent.Println(heard)
+
+		c := moveHeard(&heard)
+		i++
+		if c == 0 {
+			break
+		}
+		advent.Println("count", c)
+	}
+	return i, nil
 }
 
 func loadHeard(r io.Reader) heard {
@@ -83,4 +95,54 @@ func (d direction) String() string {
 
 type pos struct {
 	x, y int
+}
+
+func moveHeard(h *heard) int {
+	count := 0
+	originalMap := h.cucumbers
+
+	//east
+	mapAfterMoveEast := make(map[pos]direction)
+	for p, d := range originalMap {
+		if d != east {
+			mapAfterMoveEast[p] = d
+			continue
+		}
+		pEast := h.east(p)
+		if _, ok := originalMap[pEast]; !ok {
+			mapAfterMoveEast[pEast] = d
+			count++
+		} else {
+			mapAfterMoveEast[p] = d
+		}
+	}
+
+	//south
+	mapAfterMoveSouth := make(map[pos]direction)
+	for p, d := range mapAfterMoveEast {
+		if d != south {
+			mapAfterMoveSouth[p] = d
+			continue
+		}
+		pSouth := h.south(p)
+		if _, ok := mapAfterMoveEast[pSouth]; !ok {
+			mapAfterMoveSouth[pSouth] = d
+			count++
+		} else {
+			mapAfterMoveSouth[p] = d
+		}
+	}
+
+	h.cucumbers = mapAfterMoveSouth
+	return count
+}
+
+func (h heard) east(p pos) pos {
+	p.x = (p.x + 1) % h.width
+	return p
+}
+
+func (h heard) south(p pos) pos {
+	p.y = (p.y + 1) % h.height
+	return p
 }
