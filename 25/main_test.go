@@ -1,14 +1,16 @@
 package main
 
 import (
-	"strings"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestCalc1(t *testing.T) {
-	v, err := Calc(strings.NewReader(""))
+	f, err := os.Open("input1")
 	assert.NoError(t, err)
-	assert.Equal(t, 0, v)
+	v, err := Calc(f)
+	assert.NoError(t, err)
+	assert.Equal(t, 58, v)
 }
