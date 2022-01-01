@@ -4,7 +4,6 @@ import (
 	"advent"
 	"fmt"
 	"io"
-	"math/rand"
 	"os"
 	"strconv"
 	"strings"
@@ -23,73 +22,123 @@ const (
 )
 
 func main() {
-	f, err := os.Open("24/input2test")
+	//f, err := os.Open("24/input2test")
+	f, err := os.Open("24/input2")
 	if err != nil {
 		panic(err)
 	}
 	defer f.Close()
 
-	instructions, err := readInstructions(f)
+	is, err := newInstructionsetReader(f)
 	if err != nil {
 		panic(err)
 	}
 
-	for {
-		i := rand.Intn(endInt + 1)
-		s := state{input: intToDigitsBase8plus1(i)}
-		s = applyInstructions(s, instructions)
-		//isValid := s.reg[operRegZ] == 0
-		in := intToDigitsBase8plus1(i)
-		w := -1
-		x := -1
-		y := -1
-		z2 := (in[digit1]+12)*26 + in[digit2] + 9
+	var int1to9 = []int{1, 2, 3, 4, 5, 6, 7, 8, 9}
+	// var int1 = []int{5}
 
-		z3 := z2*26 + in[digit3] + 8
-
-		// digit4
-
-		x4dot := 0
-		if (z3%26 - 8) == in[digit4] {
-			x4dot = 0
-		} else {
-			x4dot = 1
-		}
-		x = x4dot
-
-		z4 := (z3/26)*(25*x4dot+1) + (in[digit4]+3)*x4dot
-		//z := z4
-
-		// d5
-
-		x = 1
-		z5 := 26*z4 + in[digit5]
-
-		// d6
-		x = 1
-		z6 := (26 * z5) + in[digit6] + 11
-
-		//z6 := (26 * (26*(((((in[digit1]+12)*26+in[digit2]+9)*26+in[digit3]+8)/26)*(25*x4dot+1)+(in[digit4]+3)*x4dot) + in[digit5])) + in[digit6] + 11
-		z := z6
-
-		// d7
-		w = in[digit7]
-		x = 1
-		y = in[digit7] + 10
-		z7 := z6*26 + in[digit7] + 10
-		z = z7
-
-		strState := s.String()
-		strInterp := fmt.Sprintf("w:%d x:%d y:%d z:%d", w, x, y, z)
-		if strState == strInterp {
-			fmt.Println("ok")
-		} else {
-			fmt.Printf("%s\t%v\n", strState, in)
-			fmt.Println(strInterp)
-			fmt.Println()
-		}
+	digitsInput := [][]int{
+		int1to9, // 1
+		int1to9, // 2
+		int1to9, // 3
+		int1to9, // 4
+		int1to9, // 5
+		int1to9, // 6
+		{1},     // 7
+		{1},     // 8
+		{1},     // 9
+		{1},     // 10
+		{1},     // 11
+		{1},     // 12
+		{1},     // 13
+		{1},     // 14
 	}
 
+	// inspect
+
+	iterDigits(digitsInput, func(d []int) {
+		inspect := func(ins instruction, result state) {
+			if ins.id == instEql &&
+				ins.op1 == operRegX &&
+				ins.op2 == operVal &&
+				ins.val2 == 0 && result.reg[operRegX] == 0 {
+				fmt.Printf("L%d: %s, last inp: %d, %v\n", ins.lineNumber, ins.line, result.lastInput, d)
+			}
+			// if ins.lineNumber == 8 ||
+			// 	ins.lineNumber == 26 ||
+			// 	ins.lineNumber == 44 ||
+			// 	ins.lineNumber == 62 ||
+			// 	ins.lineNumber == 80 {
+			// 	if result.reg[operRegX] == 0 {
+			// 		fmt.Printf("L%d: %s %v\n", ins.lineNumber, ins.line, d)
+			// 	}
+			// }
+		}
+
+		result := is.exec(d, inspect)
+		if result.reg[operRegZ] == 0 {
+			fmt.Printf("GOOD %v\n", d)
+		}
+
+		//fmt.Println(s, d)
+	})
+
+	//	for {
+	//		i := rand.Intn(endInt + 1)
+	//		s := state{input: intToDigitsBase8plus1(i)}
+	//		s = applyInstructions(s, instructions)
+	//		//isValid := s.reg[operRegZ] == 0
+	//		in := intToDigitsBase8plus1(i)
+	//		w := -1
+	//		x := -1
+	//		y := -1
+	//		z2 := (in[digit1]+12)*26 + in[digit2] + 9
+	//
+	//		z3 := z2*26 + in[digit3] + 8
+	//
+	//		// digit4
+	//
+	//		x4dot := 0
+	//		if (z3%26 - 8) == in[digit4] {
+	//			x4dot = 0
+	//		} else {
+	//			x4dot = 1
+	//		}
+	//		x = x4dot
+	//
+	//		z4 := (z3/26)*(25*x4dot+1) + (in[digit4]+3)*x4dot
+	//		//z := z4
+	//
+	//		// d5
+	//
+	//		x = 1
+	//		z5 := 26*z4 + in[digit5]
+	//
+	//		// d6
+	//		x = 1
+	//		z6 := (26 * z5) + in[digit6] + 11
+	//
+	//		//z6 := (26 * (26*(((((in[digit1]+12)*26+in[digit2]+9)*26+in[digit3]+8)/26)*(25*x4dot+1)+(in[digit4]+3)*x4dot) + in[digit5])) + in[digit6] + 11
+	//		z := z6
+	//
+	//		// d7
+	//		w = in[digit7]
+	//		x = 1
+	//		y = in[digit7] + 10
+	//		z7 := z6*26 + in[digit7] + 10
+	//		z = z7
+	//
+	//		strState := s.String()
+	//		strInterp := fmt.Sprintf("w:%d x:%d y:%d z:%d", w, x, y, z)
+	//		if strState == strInterp {
+	//			fmt.Println("ok")
+	//		} else {
+	//			fmt.Printf("%s\t%v\n", strState, in)
+	//			fmt.Println(strInterp)
+	//			fmt.Println()
+	//		}
+	//	}
+	//
 	// v, err := Calc(f)
 	// if err != nil {
 	// 	panic(err)
@@ -97,61 +146,44 @@ func main() {
 	// fmt.Println("RESULT", v)
 }
 
-var startInt int
-var endInt int
-
-func init() {
-	startInt = 0
-
-	e, err := strconv.ParseInt("88888888888888", 9, 64)
+func newInstructionsetReader(r io.Reader) (instructionset, error) {
+	instructions, err := readInstructions(r)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-	endInt = int(e)
+	return instructionset(instructions), nil
+}
+
+type instructionset []instruction
+
+func (is instructionset) exec(input []int, inspect func(instruction, state)) state {
+	inputCopy := make([]int, len(input))
+	copy(inputCopy, input)
+	s := state{input: inputCopy}
+	return applyInstructions(s, is, inspect)
 }
 
 func Calc(r io.Reader) (int, error) {
-	instructions, err := readInstructions(r)
-	if err != nil {
-		return 0, err
-	}
+	// instructions, err := readInstructions(r)
+	// if err != nil {
+	// 	return 0, err
+	// }
 
-	for i := endInt; i >= startInt; i-- {
-		s := state{input: intToDigitsBase8plus1(i)}
-		s = applyInstructions(s, instructions)
-		isValid := s.reg[operRegZ] == 0
-		if isValid {
-			fmt.Printf("%v\tz %d\t%v\tin %d\t%v\n", isValid, s.reg[operRegZ], intToDigitsBase8plus1(s.reg[operRegZ]), i, intToDigitsBase8plus1(i))
-		}
-	}
+	// for i := endInt; i >= startInt; i-- {
+	// 	s := state{input: intToDigitsBase8plus1(i)}
+	// 	s = applyInstructions(s, instructions)
+	// 	isValid := s.reg[operRegZ] == 0
+	// 	if isValid {
+	// 		fmt.Printf("%v\tz %d\t%v\tin %d\t%v\n", isValid, s.reg[operRegZ], intToDigitsBase8plus1(s.reg[operRegZ]), i, intToDigitsBase8plus1(i))
+	// 	}
+	// }
 
 	return 0, nil
 }
 
-func intToDigitsBase8plus1(in int) []int {
-	ints := make([]int, 14)
-	s := strconv.FormatInt(int64(in), 9)
-	ss := []string{}
-	for _, c := range s {
-		ss = append(ss, fmt.Sprintf("%c", c))
-	}
-	for i := 13; i >= 0; i-- {
-		if len(ss) > 0 {
-			c := ss[len(ss)-1]
-			ss = ss[:len(ss)-1]
-			v := advent.Atoi(c) + 1
-			ints[i] = v
-		} else {
-			ints[i] = 1
-		}
-	}
-
-	return ints
-}
-
-func applyInstructions(s state, instructions []instruction) state {
+func applyInstructions(s state, instructions []instruction, inspect func(instruction, state)) state {
 	for i := range instructions {
-		s = eval(s, instructions[i])
+		s = eval(s, instructions[i], inspect)
 	}
 	return s
 }
@@ -171,7 +203,7 @@ func readInstructions(r io.Reader) ([]instruction, error) {
 
 func parseInstructionsFromLines(lines []string) ([]instruction, error) {
 	ii := []instruction{}
-	for _, line := range lines {
+	for i, line := range lines {
 		if strings.HasPrefix(line, "#") {
 			continue
 		}
@@ -179,6 +211,8 @@ func parseInstructionsFromLines(lines []string) ([]instruction, error) {
 		if err != nil {
 			return nil, err
 		}
+		p.lineNumber = i + 1
+		p.line = line
 		ii = append(ii, p)
 	}
 	return ii, nil
@@ -186,7 +220,7 @@ func parseInstructionsFromLines(lines []string) ([]instruction, error) {
 
 func parseLine(line string) (instruction, error) {
 	in := instruction{}
-	parts := strings.Split(strings.Trim(line, " \n"), " ")
+	parts := strings.Split(trimLine(line), " ")
 	var err error
 	if parts[0] == "inp" {
 		in.id = instInp
@@ -218,6 +252,13 @@ func parseLine(line string) (instruction, error) {
 	}
 
 	return in, nil
+}
+
+func trimLine(line string) string {
+	if i := strings.Index(line, "#"); i >= 0 {
+		line = line[0:i]
+	}
+	return strings.Trim(line, " \n")
 }
 
 func updateInstructionFromTwoStrings(in instruction, opStr1, opStr2 string) (instruction, error) {
@@ -257,7 +298,7 @@ func valueFromString(s string) (int, bool) {
 	return v, err == nil
 }
 
-func eval(s state, ins instruction) state {
+func eval(s state, ins instruction, inspect func(instruction, state)) state {
 	if ins.op1 == operVal {
 		panic(fmt.Sprintf("op1 cannot be val: %+v", ins))
 	}
@@ -270,9 +311,10 @@ func eval(s state, ins instruction) state {
 		val2 = s.reg[ins.op2]
 	}
 
-	// fmt.Printf("%s %s(%d) %s(%d)\n", ins, ins.op1, val1, ins.op2, val2)
+	result := instrTable[ins.id](s, ins.op1, val1, val2)
+	inspect(ins, result)
 
-	return instrTable[ins.id](s, ins.op1, val1, val2)
+	return result
 }
 
 type instruction struct {
@@ -280,6 +322,9 @@ type instruction struct {
 	op1  operand
 	op2  operand
 	val2 int
+	// debug
+	lineNumber int
+	line       string
 }
 
 func (i instruction) String() string {
@@ -352,6 +397,8 @@ type instrFunc func(state, operand, int, int) state
 type state struct {
 	input []int
 	reg   [regCount]int
+	// debug
+	lastInput int
 }
 
 func (s state) String() string {
@@ -374,6 +421,7 @@ func instFuncInp(s state, dest operand, val1, val2 int) state {
 	inp := s.input[0]
 	s.input = s.input[1:]
 	s.reg[dest] = inp
+	s.lastInput = inp
 	// fmt.Printf("inp %s (%d)\n", dest, inp)
 	return s
 }
@@ -414,4 +462,21 @@ func instFuncEql(s state, dest operand, val1, val2 int) state {
 		s.reg[dest] = 0
 	}
 	return s
+}
+
+func iterDigits(ranges [][]int, call func([]int)) {
+	var rec func(ranges [][]int, call func([]int), soFar []int)
+
+	rec = func(ranges [][]int, call func([]int), soFar []int) {
+		if len(ranges) == 0 {
+			call(soFar)
+			return
+		}
+
+		for _, d := range ranges[0] {
+			rec(ranges[1:], call, append(soFar, d))
+		}
+	}
+
+	rec(ranges, call, []int{})
 }

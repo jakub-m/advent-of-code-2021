@@ -67,12 +67,6 @@ eql z x
 // 	assert.Equal(t, true, isValid)
 // }
 
-func TestIntConf(t *testing.T) {
-	assert.Equal(t, []int{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, intToDigitsBase8plus1(startInt))
-	assert.Equal(t, []int{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1}, intToDigitsBase8plus1(9))
-	assert.Equal(t, []int{9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9}, intToDigitsBase8plus1(endInt))
-}
-
 func calcStateFromInput(r io.Reader, input []int) (state, error) {
 	instructions, err := readInstructions(r)
 	if err != nil {

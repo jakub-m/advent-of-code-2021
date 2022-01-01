@@ -1,11 +1,11 @@
-inp w
+inp w       # d1
 mul x 0
 add x z
 mod x 26
 div z 1
 add x 14
 eql x w
-eql x 0
+eql x 0     # d1
 mul y 0
 add y 25
 mul y x
@@ -16,14 +16,14 @@ add y w
 add y 12
 mul y x
 add z y
-inp w
+inp w       # d2
 mul x 0
 add x z
 mod x 26
 div z 1
 add x 10
 eql x w
-eql x 0
+eql x 0     # d2
 mul y 0
 add y 25
 mul y x
@@ -34,14 +34,14 @@ add y w
 add y 9
 mul y x
 add z y
-inp w
+inp w       # d3
 mul x 0
 add x z
 mod x 26
 div z 1
 add x 13
 eql x w
-eql x 0
+eql x 0     # d3
 mul y 0
 add y 25
 mul y x
@@ -52,14 +52,14 @@ add y w
 add y 8
 mul y x
 add z y
-inp w
+inp w       # d4
 mul x 0
 add x z
 mod x 26
 div z 26
 add x -8
 eql x w
-eql x 0
+eql x 0     # d4
 mul y 0
 add y 25
 mul y x
@@ -70,14 +70,14 @@ add y w
 add y 3
 mul y x
 add z y
-inp w
+inp w       # d5
 mul x 0
 add x z
 mod x 26
 div z 1
 add x 11
 eql x w
-eql x 0
+eql x 0     # d5
 mul y 0
 add y 25
 mul y x
@@ -88,14 +88,14 @@ add y w
 add y 0
 mul y x
 add z y
-inp w
+inp w       # d6
 mul x 0
 add x z
 mod x 26
 div z 1
 add x 11
 eql x w
-eql x 0
+eql x 0     # d6
 mul y 0
 add y 25
 mul y x
@@ -106,14 +106,14 @@ add y w
 add y 11
 mul y x
 add z y
-inp w
+inp w       # d7
 mul x 0
 add x z
 mod x 26
 div z 1
 add x 14
 eql x w
-eql x 0
+eql x 0     # d7
 mul y 0
 add y 25
 mul y x
@@ -124,14 +124,14 @@ add y w
 add y 10
 mul y x
 add z y
-inp w
+inp w       # d8
 mul x 0
 add x z
 mod x 26
 div z 26
 add x -11
 eql x w
-eql x 0
+eql x 0     # d8
 mul y 0
 add y 25
 mul y x
@@ -142,14 +142,14 @@ add y w
 add y 13
 mul y x
 add z y
-inp w
+inp w       # d9
 mul x 0
 add x z
 mod x 26
 div z 1
 add x 14
 eql x w
-eql x 0
+eql x 0     # d9
 mul y 0
 add y 25
 mul y x
@@ -160,14 +160,14 @@ add y w
 add y 3
 mul y x
 add z y
-inp w
+inp w       # d10
 mul x 0
 add x z
 mod x 26
 div z 26
 add x -1
 eql x w
-eql x 0
+eql x 0     # d10
 mul y 0
 add y 25
 mul y x
@@ -178,14 +178,14 @@ add y w
 add y 10
 mul y x
 add z y
-inp w
+inp w       # d11
 mul x 0
 add x z
 mod x 26
 div z 26
 add x -8
 eql x w
-eql x 0
+eql x 0     # d11
 mul y 0
 add y 25
 mul y x
@@ -196,14 +196,14 @@ add y w
 add y 10
 mul y x
 add z y
-inp w
+inp w       # d12
 mul x 0
 add x z
 mod x 26
 div z 26
 add x -5
 eql x w
-eql x 0
+eql x 0     # d12
 mul y 0
 add y 25
 mul y x
@@ -214,14 +214,14 @@ add y w
 add y 14
 mul y x
 add z y
-inp w
+inp w       # d13
 mul x 0
 add x z
 mod x 26
 div z 26
 add x -16
 eql x w
-eql x 0
+eql x 0     # d13
 mul y 0
 add y 25
 mul y x
@@ -232,14 +232,14 @@ add y w
 add y 6
 mul y x
 add z y
-inp w
+inp w       # d14
 mul x 0
 add x z
 mod x 26
 div z 26
 add x -6
-eql x w
-eql x 0
+eql x w # post x must be 1, pre x must be dig[9]
+eql x 0 # d14 ; post x must be 0 , pre x must be 1
 mul y 0
 add y 25
 mul y x
@@ -249,4 +249,4 @@ mul y 0
 add y w
 add y 5
 mul y x
-add z y
+add z y # 1) -y = z; z > 0; y < 0 NO 2) z = 0, y = 0
