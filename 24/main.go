@@ -22,7 +22,6 @@ const (
 )
 
 func main() {
-	//f, err := os.Open("24/input2test")
 	f, err := os.Open("24/input2")
 	if err != nil {
 		panic(err)
@@ -35,115 +34,56 @@ func main() {
 	}
 
 	var int1to9 = []int{1, 2, 3, 4, 5, 6, 7, 8, 9}
+	_ = int1to9
 	// var int1 = []int{5}
 
-	digitsInput := [][]int{
-		int1to9, // 1
-		int1to9, // 2
-		int1to9, // 3
-		int1to9, // 4
-		int1to9, // 5
-		int1to9, // 6
-		{1},     // 7
-		{1},     // 8
-		{1},     // 9
-		{1},     // 10
-		{1},     // 11
-		{1},     // 12
-		{1},     // 13
-		{1},     // 14
-	}
+	// digitsInput := [][]int{
+	// 	// {1},     // 1
+	// 	// {1},     // 2
+	// 	// {1},     // 3
+	// 	// {1},     // 4
+	// 	// {1},     // 5
+	// 	// {1},     // 6
+	// 	// {1},     // 7
+	// 	// {1},     // 8
+	// 	// {1},     // 9
+	// 	// {1},     // 10
+	// 	// {1},     // 11
+	// 	// {1},     // 12
+	// 	// {1},     // 13
+	// 	int1to9, // 14
+	// }
+	// _ = digitsInput
 
 	// inspect
 
-	iterDigits(digitsInput, func(d []int) {
-		inspect := func(ins instruction, result state) {
-			if ins.id == instEql &&
-				ins.op1 == operRegX &&
-				ins.op2 == operVal &&
-				ins.val2 == 0 && result.reg[operRegX] == 0 {
-				fmt.Printf("L%d: %s, last inp: %d, %v\n", ins.lineNumber, ins.line, result.lastInput, d)
+	noInspect := func(ins instruction, result state) {}
+	_ = noInspect
+
+	for d := 1; d <= 9; d++ {
+		for zIn := 1; zIn < 26; zIn++ {
+			result := is.execRegZ([]int{d}, zIn, noInspect)
+			zOut := result.reg[operRegZ]
+			if intIn(zOut, []int{7, 8, 9, 10, 11, 12, 13, 14, 15}) {
+				//fmt.Printf("GOOD z:%d %v\n", zIn, d)
+				fmt.Printf("zIn,d,zOut\t%d\t%d\t%d\n", zIn, d, zOut)
 			}
-			// if ins.lineNumber == 8 ||
-			// 	ins.lineNumber == 26 ||
-			// 	ins.lineNumber == 44 ||
-			// 	ins.lineNumber == 62 ||
-			// 	ins.lineNumber == 80 {
-			// 	if result.reg[operRegX] == 0 {
-			// 		fmt.Printf("L%d: %s %v\n", ins.lineNumber, ins.line, d)
-			// 	}
-			// }
 		}
 
-		result := is.exec(d, inspect)
-		if result.reg[operRegZ] == 0 {
-			fmt.Printf("GOOD %v\n", d)
-		}
+	}
 
-		//fmt.Println(s, d)
-	})
+	// iterDigits(digitsInput, func(d []int) {
+	// 	for zIn := 1; zIn < 26; zIn++ {
+	// 		result := is.execRegZ(d, zIn, noInspect)
+	// 		zOut := result.reg[operRegZ]
+	// 		if zOut == 0 {
+	// 			//fmt.Printf("GOOD z:%d %v\n", zIn, d)
+	// 			fmt.Printf("zIn,d,zOut\t%d\t%d\t%d\n", zIn, zOut, d)
+	// 		}
+	// 	}
 
-	//	for {
-	//		i := rand.Intn(endInt + 1)
-	//		s := state{input: intToDigitsBase8plus1(i)}
-	//		s = applyInstructions(s, instructions)
-	//		//isValid := s.reg[operRegZ] == 0
-	//		in := intToDigitsBase8plus1(i)
-	//		w := -1
-	//		x := -1
-	//		y := -1
-	//		z2 := (in[digit1]+12)*26 + in[digit2] + 9
-	//
-	//		z3 := z2*26 + in[digit3] + 8
-	//
-	//		// digit4
-	//
-	//		x4dot := 0
-	//		if (z3%26 - 8) == in[digit4] {
-	//			x4dot = 0
-	//		} else {
-	//			x4dot = 1
-	//		}
-	//		x = x4dot
-	//
-	//		z4 := (z3/26)*(25*x4dot+1) + (in[digit4]+3)*x4dot
-	//		//z := z4
-	//
-	//		// d5
-	//
-	//		x = 1
-	//		z5 := 26*z4 + in[digit5]
-	//
-	//		// d6
-	//		x = 1
-	//		z6 := (26 * z5) + in[digit6] + 11
-	//
-	//		//z6 := (26 * (26*(((((in[digit1]+12)*26+in[digit2]+9)*26+in[digit3]+8)/26)*(25*x4dot+1)+(in[digit4]+3)*x4dot) + in[digit5])) + in[digit6] + 11
-	//		z := z6
-	//
-	//		// d7
-	//		w = in[digit7]
-	//		x = 1
-	//		y = in[digit7] + 10
-	//		z7 := z6*26 + in[digit7] + 10
-	//		z = z7
-	//
-	//		strState := s.String()
-	//		strInterp := fmt.Sprintf("w:%d x:%d y:%d z:%d", w, x, y, z)
-	//		if strState == strInterp {
-	//			fmt.Println("ok")
-	//		} else {
-	//			fmt.Printf("%s\t%v\n", strState, in)
-	//			fmt.Println(strInterp)
-	//			fmt.Println()
-	//		}
-	//	}
-	//
-	// v, err := Calc(f)
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// fmt.Println("RESULT", v)
+	// 	//fmt.Println(s, d)
+	// })
 }
 
 func newInstructionsetReader(r io.Reader) (instructionset, error) {
@@ -160,6 +100,14 @@ func (is instructionset) exec(input []int, inspect func(instruction, state)) sta
 	inputCopy := make([]int, len(input))
 	copy(inputCopy, input)
 	s := state{input: inputCopy}
+	return applyInstructions(s, is, inspect)
+}
+
+func (is instructionset) execRegZ(input []int, regZ int, inspect func(instruction, state)) state {
+	inputCopy := make([]int, len(input))
+	copy(inputCopy, input)
+	s := state{input: inputCopy}
+	s.reg[operRegZ] = regZ
 	return applyInstructions(s, is, inspect)
 }
 
@@ -479,4 +427,13 @@ func iterDigits(ranges [][]int, call func([]int)) {
 	}
 
 	rec(ranges, call, []int{})
+}
+
+func intIn(needle int, haystack []int) bool {
+	for _, h := range haystack {
+		if needle == h {
+			return true
+		}
+	}
+	return false
 }
