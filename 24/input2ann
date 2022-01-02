@@ -1,0 +1,267 @@
+# ------------- digit 1
+inp w           w [1,9] , z {0}
+mul x 0
+add x z
+mod x 26        x {0}
+div z 1
+add x 14        x {14}
+eql x w         x {0}
+eql x 0         x {1}
+mul y 0
+add y 25        y {25}
+mul y x
+add y 1         y {26}
+mul z y         z {0}
+mul y 0
+add y w         y [1,9]
+add y 12        y [12+1, 12+9]
+mul y x
+add z y         z [12+1, 12+9]
+# ------------- digit 2
+inp w           w [1, 9]
+mul x 0
+add x z
+mod x 26        x [0, 25]
+div z 1
+add x 10        x [10, 35]
+eql x w         x {0}
+eql x 0         x {1}
+mul y 0
+add y 25        y {25}
+mul y x
+add y 1         y {26}
+mul z y         z [(12+1)*26, (12+9)*26]
+mul y 0
+add y w
+add y 9         y {9, 18}
+mul y x
+add z y         z [(12+1)*26+9, (12+9)*26+18]
+# ------------- digit 3
+inp w
+mul x 0
+add x z
+mod x 26        x [0, 25]
+div z 1
+add x 13        x [13, 25+13]
+eql x w         x {0}
+eql x 0         x {1}
+mul y 0
+add y 25
+mul y x
+add y 1         y {26}
+mul z y         z [((12+1)*26+9)*26 , ((12+9)*26+18)*26]
+mul y 0
+add y w
+add y 8         y [8, 17]
+mul y x
+add z y         z [ ((12+1)*26+9)*26+8 , ((12+9)*26+18)*26+17 ]
+# ------------- digit 4
+inp w
+mul x 0
+add x z
+mod x 26        x [0, 15]
+div z 26        z [ (((12+1)*26+9)*26+8)/26 , (((12+9)*26+18)*26+17)/26 ]
+add x -8        x [-8, 7]
+eql x w         x {0, 1}
+eql x 0         x {0, 1}
+mul y 0
+add y 25
+mul y x
+add y 1         y {1, 26}
+mul z y         z [ (((12+1)*26+9)*26+8)/26 , (((12+9)*26+18)*26+17)/26 ] union
+                  [ (((12+1)*26+9)*26+8)    , (((12+9)*26+18)*26+17)    ]
+mul y 0
+add y w
+add y 3         y [4, 13]
+mul y x         
+add z y         z [ (((12+1)*26+9)*26+8)/26 , (((12+9)*26+18)*26+17)/26+13] union
+                  [ (((12+1)*26+9)*26+8)    , (((12+9)*26+18)*26+17)   +13]
+
+# ------------- digit 5
+                z [ 347 , 14694 ]  <-- recalc
+inp w           w [1, 9]
+mul x 0
+add x z
+mod x 26        x [0, 25]
+div z 1
+add x 11        x [11, 36]
+eql x w         x {0}
+eql x 0         x {1}
+mul y 0
+add y 25
+mul y x
+add y 1         y {26}
+mul z y         z [347*26 , 14694*26]
+mul y 0
+add y w         y [1, 9]
+add y 0
+mul y x
+add z y         z [347*26+1 , 14694*26+9]   
+# ------------- digit 6
+inp w
+mul x 0
+add x z
+mod x 26
+div z 1
+add x 11
+eql x w
+eql x 0         x {1}
+mul y 0
+add y 25
+mul y x
+add y 1         y {26}
+mul z y         z [ (347*26+1)*26 , (14694*26+9)*26 ]   
+mul y 0
+add y w
+add y 11        y [12, 20]
+mul y x
+add z y         z [ (347*26+1)*26+12 , (14694*26+9)*26+20 ]   
+# ------------- digit 7
+inp w
+mul x 0
+add x z
+mod x 26
+div z 1
+add x 14
+eql x w
+eql x 0
+mul y 0
+add y 25
+mul y x
+add y 1
+mul z y
+mul y 0
+add y w
+add y 10
+mul y x
+add z y
+
+inp w
+mul x 0
+add x z
+mod x 26
+div z 26
+add x -11
+eql x w
+eql x 0
+mul y 0
+add y 25
+mul y x
+add y 1
+mul z y
+mul y 0
+add y w
+add y 13
+mul y x
+add z y
+inp w
+mul x 0
+add x z
+mod x 26
+div z 1
+add x 14
+eql x w
+eql x 0
+mul y 0
+add y 25
+mul y x
+add y 1
+mul z y
+mul y 0
+add y w
+add y 3
+mul y x
+add z y
+
+inp w
+mul x 0
+add x z
+mod x 26
+div z 26
+add x -1
+eql x w
+eql x 0
+mul y 0
+add y 25
+mul y x
+add y 1
+mul z y
+mul y 0
+add y w
+add y 10
+mul y x
+add z y
+inp w
+mul x 0
+add x z
+mod x 26
+div z 26
+add x -8
+eql x w
+eql x 0
+mul y 0
+add y 25
+mul y x
+add y 1
+mul z y
+mul y 0
+add y w
+add y 10
+mul y x
+add z y
+
+inp w
+mul x 0
+add x z
+mod x 26
+div z 26
+add x -5
+eql x w
+eql x 0
+mul y 0
+add y 25
+mul y x
+add y 1
+mul z y
+mul y 0
+add y w
+add y 14
+mul y x
+add z y
+inp w
+mul x 0
+add x z
+mod x 26
+div z 26
+add x -16
+eql x w
+eql x 0
+mul y 0
+add y 25
+mul y x
+add y 1
+mul z y
+mul y 0
+add y w
+add y 6
+mul y x
+add z y
+
+inp w
+mul x 0
+add x z
+mod x 26
+div z 26
+add x -6
+eql x w
+eql x 0
+mul y 0
+add y 25
+mul y x
+add y 1
+mul z y
+mul y 0
+add y w
+add y 5
+mul y x
+add z y

@@ -9,17 +9,7 @@ import (
 	"strings"
 )
 
-const (
-	digit1 int = iota
-	digit2
-	digit3
-	digit4
-	digit5
-	digit6
-	digit7
-	digit8
-	digit9
-)
+func noInspect(ins instruction, result state) {}
 
 func main() {
 	f, err := os.Open("24/input2")
@@ -28,70 +18,61 @@ func main() {
 	}
 	defer f.Close()
 
-	is, err := newInstructionsetReader(f)
+	allInstructions, err := newInstructionsetReader(f)
 	if err != nil {
 		panic(err)
 	}
 
-	var int1to9 = []int{1, 2, 3, 4, 5, 6, 7, 8, 9}
-	_ = int1to9
-	// var int1 = []int{5}
+	for i, instructionSection := range splitInstructionsByInp(allInstructions) {
+		for digit := 1; digit <= 9; digit++ {
+			if i == 0 {
+				zIn := 0
+				result := instructionSection.execRegZ([]int{digit}, zIn, noInspect)
+				zOut := result.reg[operRegZ]
+				fmt.Printf("%d\t%d\t%d\t%d\n", i+1, zIn, digit, zOut)
 
-	// digitsInput := [][]int{
-	// 	// {1},     // 1
-	// 	// {1},     // 2
-	// 	// {1},     // 3
-	// 	// {1},     // 4
-	// 	// {1},     // 5
-	// 	// {1},     // 6
-	// 	// {1},     // 7
-	// 	// {1},     // 8
-	// 	// {1},     // 9
-	// 	// {1},     // 10
-	// 	// {1},     // 11
-	// 	// {1},     // 12
-	// 	// {1},     // 13
-	// 	int1to9, // 14
-	// }
-	// _ = digitsInput
-
-	// inspect
-
-	noInspect := func(ins instruction, result state) {}
-	_ = noInspect
-
-	for d := 1; d <= 9; d++ {
-		for zIn := 1; zIn < 26; zIn++ {
-			result := is.execRegZ([]int{d}, zIn, noInspect)
-			zOut := result.reg[operRegZ]
-			if intIn(zOut, []int{7, 8, 9, 10, 11, 12, 13, 14, 15}) {
-				//fmt.Printf("GOOD z:%d %v\n", zIn, d)
-				fmt.Printf("zIn,d,zOut\t%d\t%d\t%d\n", zIn, d, zOut)
+			} else {
+				for zIn := 1; zIn < 26; zIn++ {
+					result := instructionSection.execRegZ([]int{digit}, zIn, noInspect)
+					zOut := result.reg[operRegZ]
+					fmt.Printf("%d\t%d\t%d\t%d\n", i+1, zIn, digit, zOut)
+				}
 			}
 		}
-
 	}
-
-	// iterDigits(digitsInput, func(d []int) {
-	// 	for zIn := 1; zIn < 26; zIn++ {
-	// 		result := is.execRegZ(d, zIn, noInspect)
-	// 		zOut := result.reg[operRegZ]
-	// 		if zOut == 0 {
-	// 			//fmt.Printf("GOOD z:%d %v\n", zIn, d)
-	// 			fmt.Printf("zIn,d,zOut\t%d\t%d\t%d\n", zIn, zOut, d)
-	// 		}
-	// 	}
-
-	// 	//fmt.Println(s, d)
-	// })
 }
 
 func newInstructionsetReader(r io.Reader) (instructionset, error) {
-	instructions, err := readInstructions(r)
+	lines, err := advent.ReadLinesTrim(r)
+	if err != nil {
+		return nil, err
+	}
+
+	instructions, err := parseInstructionsFromLines(lines)
 	if err != nil {
 		return nil, err
 	}
 	return instructionset(instructions), nil
+}
+
+func splitInstructionsByInp(is instructionset) []instructionset {
+	split := []instructionset{}
+	current := instructionset{}
+	update := func() {
+		if len(current) > 0 {
+			split = append(split, current)
+		}
+		current = instructionset{}
+	}
+	for _, ins := range is {
+		if ins.id == instInp {
+			update()
+		} else {
+			current = append(current, ins)
+		}
+	}
+	update()
+	return split
 }
 
 type instructionset []instruction
@@ -134,19 +115,6 @@ func applyInstructions(s state, instructions []instruction, inspect func(instruc
 		s = eval(s, instructions[i], inspect)
 	}
 	return s
-}
-
-func readInstructions(r io.Reader) ([]instruction, error) {
-	lines, err := advent.ReadLinesTrim(r)
-	if err != nil {
-		return nil, err
-	}
-
-	instructions, err := parseInstructionsFromLines(lines)
-	if err != nil {
-		return nil, err
-	}
-	return instructions, nil
 }
 
 func parseInstructionsFromLines(lines []string) ([]instruction, error) {
