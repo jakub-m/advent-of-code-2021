@@ -23,23 +23,41 @@ func main() {
 		panic(err)
 	}
 
-	for i, instructionSection := range splitInstructionsByInp(allInstructions) {
-		for digit := 1; digit <= 9; digit++ {
-			if i == 0 {
-				zIn := 0
-				result := instructionSection.execRegZ([]int{digit}, zIn, noInspect)
-				zOut := result.reg[operRegZ]
-				fmt.Printf("%d\t%d\t%d\t%d\n", i+1, zIn, digit, zOut)
+	sections := splitInstructionsByInp(allInstructions)
 
-			} else {
-				for zIn := 1; zIn < 26; zIn++ {
-					result := instructionSection.execRegZ([]int{digit}, zIn, noInspect)
-					zOut := result.reg[operRegZ]
-					fmt.Printf("%d\t%d\t%d\t%d\n", i+1, zIn, digit, zOut)
-				}
+	sectionZIn := make(map[int]bool)
+	sectionZIn[0] = true
+	for iSection := range sections {
+		sectionZOut := make(map[int]bool)
+		for digit := 1; digit <= 9; digit++ {
+			for zIn := range sectionZIn {
+				result := sections[iSection].execRegZ([]int{digit}, zIn, noInspect)
+				zOut := result.reg[operRegZ]
+				sectionZOut[zOut] = true
+				//fmt.Printf("%d\t%d\t%d\t%d\n", iSection, zIn, digit, zOut)
 			}
 		}
+		sectionZIn = sectionZOut
+		fmt.Println(iSection, len(sectionZOut))
 	}
+
+	// for i, instructionSection := range splitInstructionsByInp(allInstructions) {
+	// 	for digit := 1; digit <= 9; digit++ {
+	// 		if i == 0 {
+	// 			zIn := 0
+	// 			result := instructionSection.execRegZ([]int{digit}, zIn, noInspect)
+	// 			zOut := result.reg[operRegZ]
+	// 			fmt.Printf("%d\t%d\t%d\t%d\n", i+1, zIn, digit, zOut)
+
+	// 		} else {
+	// 			for zIn := 1; zIn < 26; zIn++ {
+	// 				result := instructionSection.execRegZ([]int{digit}, zIn, noInspect)
+	// 				zOut := result.reg[operRegZ]
+	// 				fmt.Printf("%d\t%d\t%d\t%d\n", i+1, zIn, digit, zOut)
+	// 			}
+	// 		}
+	// 	}
+	// }
 }
 
 func newInstructionsetReader(r io.Reader) (instructionset, error) {
@@ -67,9 +85,8 @@ func splitInstructionsByInp(is instructionset) []instructionset {
 	for _, ins := range is {
 		if ins.id == instInp {
 			update()
-		} else {
-			current = append(current, ins)
 		}
+		current = append(current, ins)
 	}
 	update()
 	return split
@@ -244,7 +261,11 @@ type instruction struct {
 }
 
 func (i instruction) String() string {
-	return fmt.Sprintf("%s %s %s %d", i.id, i.op1, i.op2, i.val2)
+	if i.op2 == operVal {
+		return fmt.Sprintf("%s %s %d", i.id, i.op1, i.val2)
+	} else {
+		return fmt.Sprintf("%s %s %s", i.id, i.op1, i.op2)
+	}
 }
 
 type instructionId uint8
