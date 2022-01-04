@@ -41,12 +41,11 @@ func main() {
 	if true {
 		//sectionLimit, goal := 6, 9921230
 		sectionLimit, goal := 7, 209893599
+		//sectionLimit, goal := 8, 159169942
 		//programFileName = "24/input3"
 		products = getProductsBySection(programFileName, sectionLimit)
 		fmt.Println("len(products) =", len(products))
-		// for _, p := range products {
-		// 	fmt.Println(p)
-		// }
+		fmt.Println("last product", products[len(products)-1])
 
 		// storeProductsAsGob(products, "products.gob")
 		path := findPathLeadingToNumber(products, goal)
@@ -502,13 +501,28 @@ func findPathLeadingToNumber(products []product, goal int) []int {
 	}
 
 	// TODO optimize - prune dead ends
-	// TODO optimize - cache for intermediate DP results
 	// TODO optimize - drop main table after reindexing
 
 	fmt.Println("start rec")
 
+	type cacheKey struct {
+		section, zIn, targetZOut int
+	}
+	cache := make(map[cacheKey][]int)
+	var cacheHit, cacheMiss *int = new(int), new(int)
+	*cacheHit, *cacheMiss = 0, 0
+
 	var rec func(section int, zIn int, targetZout int) []int
-	rec = func(section int, zIn int, targetZOut int) []int {
+	rec = func(section int, zIn int, targetZOut int) (result []int) {
+		ck := cacheKey{section, zIn, targetZOut}
+		if v, ok := cache[ck]; ok {
+			*cacheHit++
+			return v
+		} else {
+			*cacheMiss++
+		}
+		defer func() { cache[ck] = result }()
+
 		// fmt.Println(section, zIn)
 		mapDigitZout := mapSectionZinDigitZout[section][zIn]
 		if section == len(mapSectionZinDigitZout)-1 {
@@ -544,6 +558,9 @@ func findPathLeadingToNumber(products []product, goal int) []int {
 		}
 	}
 
+	defer func() {
+		fmt.Println("cache hit rate", 100*(*cacheHit)/(*cacheHit+*cacheMiss+1), "%")
+	}()
 	return rec(0, 0, goal)
 }
 
