@@ -16,43 +16,86 @@ type product struct {
 	Section, ZIn, Digit, ZOut int
 }
 
+func (p product) String() string {
+	return fmt.Sprintf("%d\t%d\t%d\t%d", p.Section, p.ZIn, p.Digit, p.ZOut)
+}
+
 func main() {
-	products := getProductsBySection("24/input2")
-	storeProductsAsGob(products, "products.gob")
-	path := findPathLeadingToNumber(products, 377982)
-	fmt.Println(path)
-	for _, p := range products {
-		fmt.Printf("%+v\n", p)
+	programFileName := "24/input2"
+
+	if false {
+		f, err := os.Open(programFileName)
+		advent.PanicErr(err)
+		ins, err := newInstructionsetReader(f)
+		advent.PanicErr(err)
+		s := ins.exec([]int{1, 8, 1, 1, 6, 1, 2, 1, 1, 3, 4, 1, 1, 7}, noInspect)
+		fmt.Println(s)
+		if s.reg[operRegZ] == 0 {
+			fmt.Println("GOOD")
+		}
+	}
+
+	var products []product
+	_ = products
+
+	if true {
+		//programFileName = "24/input3"
+		products = getProductsBySection(programFileName, 0)
+		// for _, p := range products {
+		// 	fmt.Println(p)
+		// }
+		storeProductsAsGob(products, "products.gob")
+		path := findPathLeadingToNumber(products, 0)
+		fmt.Println(path)
+
+	}
+
+	if true {
+		// fmt.Println("loading")
+		// products := loadProductsFromGob("products.gob")
+		fmt.Println(len(products))
+		fmt.Println("loaded")
+		path := findPathLeadingToNumber(products, 0)
+		fmt.Println(path)
 	}
 }
 
 func storeProductsAsGob(p []product, fileName string) {
+	fmt.Println("storing", len(p), "to", fileName)
 	gobOut, err := os.Create(fileName)
-	if err != nil {
-		panic(err)
-	}
+	advent.PanicErr(err)
 	defer gobOut.Close()
 	encoder := gob.NewEncoder(gobOut)
 	if err := encoder.Encode(p); err != nil {
 		panic(err)
 	}
+	fmt.Println("done storing")
 }
 
-func getProductsBySection(input string) []product {
+func loadProductsFromGob(fileName string) []product {
+	gobIn, err := os.Open(fileName)
+	advent.PanicErr(err)
+	defer gobIn.Close()
+	decoder := gob.NewDecoder(gobIn)
+	p := []product{}
+	err = decoder.Decode(&p)
+	advent.PanicErr(err)
+	return p
+}
+
+func getProductsBySection(input string, limit int) []product {
 	f, err := os.Open(input)
-	if err != nil {
-		panic(err)
-	}
+	advent.PanicErr(err)
 	defer f.Close()
 
 	allInstructions, err := newInstructionsetReader(f)
-	if err != nil {
-		panic(err)
-	}
+	advent.PanicErr(err)
 
 	sections := splitInstructionsByInp(allInstructions)
 
-	sections = sections[:6] // TODO remove
+	if limit > 0 {
+		sections = sections[:limit] // TODO remove
+	}
 	products := []product{}
 
 	sectionZIn := make(map[int]bool)
@@ -63,9 +106,10 @@ func getProductsBySection(input string) []product {
 			for zIn := range sectionZIn {
 				result := sections[iSection].execRegZ([]int{digit}, zIn, noInspect)
 				zOut := result.reg[operRegZ]
-				if !sectionZOut[zOut] {
-					products = append(products, product{iSection, zIn, digit, zOut})
-				}
+				// fmt.Println("zIn", zIn, "digit", digit, "zOut", zOut)
+				// if !sectionZOut[zOut] || true {
+				products = append(products, product{iSection, zIn, digit, zOut})
+				// }
 				sectionZOut[zOut] = true
 				//fmt.Printf("%d\t%d\t%d\t%d\n", iSection, zIn, digit, zOut)
 			}
@@ -436,6 +480,7 @@ func iterDigits(ranges [][]int, call func([]int)) {
 }
 
 func findPathLeadingToNumber(products []product, goal int) []int {
+	fmt.Println("find path for", len(products), "products")
 
 	mapSectionZinDigitZout := make(map[int]map[int]map[int]int)
 
@@ -453,6 +498,9 @@ func findPathLeadingToNumber(products []product, goal int) []int {
 
 	// TODO optimize - prune dead ends
 	// TODO optimize - cache for intermediate DP results
+	// TODO optimize - drop main table after reindexing
+
+	fmt.Println("start rec")
 
 	var rec func(section int, zIn int, targetZout int) []int
 	rec = func(section int, zIn int, targetZOut int) []int {
@@ -469,12 +517,8 @@ func findPathLeadingToNumber(products []product, goal int) []int {
 			if len(partialPaths) == 0 {
 				return []int{}
 			} else {
-				maxDigit := 0
-				for d := range partialPaths {
-					if d > maxDigit {
-						maxDigit = d
-					}
-				}
+				fmt.Printf("findPath: got %d terminal partial paths: %v\n", len(partialPaths), partialPaths)
+				maxDigit := getMaxIntKey(partialPaths)
 				return partialPaths[maxDigit]
 			}
 		} else {
@@ -489,16 +533,22 @@ func findPathLeadingToNumber(products []product, goal int) []int {
 			if len(partialPaths) == 0 {
 				return []int{}
 			} else {
-				maxDigit := 0
-				for d := range partialPaths {
-					if d > maxDigit {
-						maxDigit = d
-					}
-				}
+				maxDigit := getMaxIntKey(partialPaths)
 				return append([]int{maxDigit}, partialPaths[maxDigit]...)
 			}
 		}
 	}
 
 	return rec(0, 0, goal)
+}
+
+func getMaxIntKey(m map[int][]int) int {
+	maxDigit := 0
+	for d := range m {
+		if d > maxDigit {
+			maxDigit = d
+		}
+	}
+	advent.Assertf(maxDigit > 0, "expected max int to be larger than 0")
+	return maxDigit
 }
