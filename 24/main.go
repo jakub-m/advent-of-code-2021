@@ -507,23 +507,23 @@ func findPathLeadingToNumber(products []product, goal int) []int {
 
 	fmt.Println("start rec")
 
-	type cacheKey struct {
-		section, zIn, targetZOut int
-	}
-	cache := make(map[cacheKey][]int)
-	var cacheHit, cacheMiss *int = new(int), new(int)
-	*cacheHit, *cacheMiss = 0, 0
+	// type cacheKey struct {
+	// 	section, zIn, targetZOut int
+	// }
+	// cache := make(map[cacheKey][]int)
+	// var cacheHit, cacheMiss *int = new(int), new(int)
+	// *cacheHit, *cacheMiss = 0, 0
 
 	var rec func(section int, zIn int, targetZout int) []int
 	rec = func(section int, zIn int, targetZOut int) (result []int) {
-		ck := cacheKey{section, zIn, targetZOut}
-		if v, ok := cache[ck]; ok {
-			*cacheHit++
-			return v
-		} else {
-			*cacheMiss++
-		}
-		defer func() { cache[ck] = result }()
+		// ck := cacheKey{section, zIn, targetZOut}
+		// if v, ok := cache[ck]; ok {
+		// 	*cacheHit++
+		// 	return v
+		// } else {
+		// 	*cacheMiss++
+		// }
+		// defer func() { cache[ck] = result }()
 
 		// fmt.Println(section, zIn)
 		mapDigitZout := mapSectionZinDigitZout[section][zIn]
@@ -560,9 +560,9 @@ func findPathLeadingToNumber(products []product, goal int) []int {
 		}
 	}
 
-	defer func() {
-		fmt.Println("cache hit rate", 100*(*cacheHit)/(*cacheHit+*cacheMiss+1), "%")
-	}()
+	// defer func() {
+	// 	fmt.Println("cache hit rate", 100*(*cacheHit)/(*cacheHit+*cacheMiss+1), "%")
+	// }()
 	return rec(0, 0, goal)
 }
 
