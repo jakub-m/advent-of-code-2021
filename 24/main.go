@@ -39,19 +39,22 @@ func main() {
 	_ = products
 
 	if true {
+		//sectionLimit, goal := 6, 9921230
+		sectionLimit, goal := 7, 209893599
 		//programFileName = "24/input3"
-		products = getProductsBySection(programFileName, 0)
+		products = getProductsBySection(programFileName, sectionLimit)
+		fmt.Println("len(products) =", len(products))
 		// for _, p := range products {
 		// 	fmt.Println(p)
 		// }
-		storeProductsAsGob(products, "products.gob")
-		path := findPathLeadingToNumber(products, 0)
+
+		// storeProductsAsGob(products, "products.gob")
+		path := findPathLeadingToNumber(products, goal)
 		fmt.Println(path)
 
 	}
 
-	if true {
-		// fmt.Println("loading")
+	if false {
 		// products := loadProductsFromGob("products.gob")
 		fmt.Println(len(products))
 		fmt.Println("loaded")
@@ -73,6 +76,7 @@ func storeProductsAsGob(p []product, fileName string) {
 }
 
 func loadProductsFromGob(fileName string) []product {
+	fmt.Println("loading from", fileName)
 	gobIn, err := os.Open(fileName)
 	advent.PanicErr(err)
 	defer gobIn.Close()
@@ -80,6 +84,7 @@ func loadProductsFromGob(fileName string) []product {
 	p := []product{}
 	err = decoder.Decode(&p)
 	advent.PanicErr(err)
+	fmt.Println("loaded")
 	return p
 }
 
