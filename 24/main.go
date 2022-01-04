@@ -2,6 +2,7 @@ package main
 
 import (
 	"advent"
+	"encoding/gob"
 	"fmt"
 	"io"
 	"os"
@@ -11,8 +12,34 @@ import (
 
 func noInspect(ins instruction, result state) {}
 
+type product struct {
+	Section, ZIn, Digit, ZOut int
+}
+
 func main() {
-	f, err := os.Open("24/input2")
+	products := getProductsBySection("24/input2")
+	storeProductsAsGob(products, "products.gob")
+	path := findPathLeadingToNumber(products, 377982)
+	fmt.Println(path)
+	for _, p := range products {
+		fmt.Printf("%+v\n", p)
+	}
+}
+
+func storeProductsAsGob(p []product, fileName string) {
+	gobOut, err := os.Create(fileName)
+	if err != nil {
+		panic(err)
+	}
+	defer gobOut.Close()
+	encoder := gob.NewEncoder(gobOut)
+	if err := encoder.Encode(p); err != nil {
+		panic(err)
+	}
+}
+
+func getProductsBySection(input string) []product {
+	f, err := os.Open(input)
 	if err != nil {
 		panic(err)
 	}
@@ -25,6 +52,9 @@ func main() {
 
 	sections := splitInstructionsByInp(allInstructions)
 
+	sections = sections[:6] // TODO remove
+	products := []product{}
+
 	sectionZIn := make(map[int]bool)
 	sectionZIn[0] = true
 	for iSection := range sections {
@@ -33,6 +63,9 @@ func main() {
 			for zIn := range sectionZIn {
 				result := sections[iSection].execRegZ([]int{digit}, zIn, noInspect)
 				zOut := result.reg[operRegZ]
+				if !sectionZOut[zOut] {
+					products = append(products, product{iSection, zIn, digit, zOut})
+				}
 				sectionZOut[zOut] = true
 				//fmt.Printf("%d\t%d\t%d\t%d\n", iSection, zIn, digit, zOut)
 			}
@@ -41,23 +74,7 @@ func main() {
 		fmt.Println(iSection, len(sectionZOut))
 	}
 
-	// for i, instructionSection := range splitInstructionsByInp(allInstructions) {
-	// 	for digit := 1; digit <= 9; digit++ {
-	// 		if i == 0 {
-	// 			zIn := 0
-	// 			result := instructionSection.execRegZ([]int{digit}, zIn, noInspect)
-	// 			zOut := result.reg[operRegZ]
-	// 			fmt.Printf("%d\t%d\t%d\t%d\n", i+1, zIn, digit, zOut)
-
-	// 		} else {
-	// 			for zIn := 1; zIn < 26; zIn++ {
-	// 				result := instructionSection.execRegZ([]int{digit}, zIn, noInspect)
-	// 				zOut := result.reg[operRegZ]
-	// 				fmt.Printf("%d\t%d\t%d\t%d\n", i+1, zIn, digit, zOut)
-	// 			}
-	// 		}
-	// 	}
-	// }
+	return products
 }
 
 func newInstructionsetReader(r io.Reader) (instructionset, error) {
@@ -418,11 +435,70 @@ func iterDigits(ranges [][]int, call func([]int)) {
 	rec(ranges, call, []int{})
 }
 
-func intIn(needle int, haystack []int) bool {
-	for _, h := range haystack {
-		if needle == h {
-			return true
+func findPathLeadingToNumber(products []product, goal int) []int {
+
+	mapSectionZinDigitZout := make(map[int]map[int]map[int]int)
+
+	for _, p := range products {
+		if _, ok := mapSectionZinDigitZout[p.Section]; !ok {
+			mapSectionZinDigitZout[p.Section] = make(map[int]map[int]int)
+		}
+		mapZinDigitZout := mapSectionZinDigitZout[p.Section]
+		if _, ok := mapZinDigitZout[p.ZIn]; !ok {
+			mapZinDigitZout[p.ZIn] = make(map[int]int)
+		}
+		mapDigitZout := mapZinDigitZout[p.ZIn]
+		mapDigitZout[p.Digit] = p.ZOut
+	}
+
+	// TODO optimize - prune dead ends
+	// TODO optimize - cache for intermediate DP results
+
+	var rec func(section int, zIn int, targetZout int) []int
+	rec = func(section int, zIn int, targetZOut int) []int {
+		// fmt.Println(section, zIn)
+		mapDigitZout := mapSectionZinDigitZout[section][zIn]
+		if section == len(mapSectionZinDigitZout)-1 {
+			// last section, so we can check the target
+			partialPaths := make(map[int][]int)
+			for digit, zOut := range mapDigitZout {
+				if zOut == targetZOut {
+					partialPaths[digit] = []int{digit}
+				}
+			}
+			if len(partialPaths) == 0 {
+				return []int{}
+			} else {
+				maxDigit := 0
+				for d := range partialPaths {
+					if d > maxDigit {
+						maxDigit = d
+					}
+				}
+				return partialPaths[maxDigit]
+			}
+		} else {
+			// not the last section, DP
+			partialPaths := make(map[int][]int)
+			for digit, zOut := range mapDigitZout {
+				p := rec(section+1, zOut, targetZOut)
+				if len(p) > 0 {
+					partialPaths[digit] = p
+				}
+			}
+			if len(partialPaths) == 0 {
+				return []int{}
+			} else {
+				maxDigit := 0
+				for d := range partialPaths {
+					if d > maxDigit {
+						maxDigit = d
+					}
+				}
+				return append([]int{maxDigit}, partialPaths[maxDigit]...)
+			}
 		}
 	}
-	return false
+
+	return rec(0, 0, goal)
 }
