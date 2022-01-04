@@ -40,12 +40,14 @@ func main() {
 
 	if true {
 		//sectionLimit, goal := 6, 9921230
-		sectionLimit, goal := 7, 209893599
-		//sectionLimit, goal := 8, 159169942
+		//sectionLimit, goal := 7, 209893599
+		sectionLimit, goal := 8, 159169942
 		//programFileName = "24/input3"
 		products = getProductsBySection(programFileName, sectionLimit)
 		fmt.Println("len(products) =", len(products))
 		fmt.Println("last product", products[len(products)-1])
+		products = pruneUseless(products, goal)
+		fmt.Println("pruned len(products) =", len(products))
 
 		// storeProductsAsGob(products, "products.gob")
 		path := findPathLeadingToNumber(products, goal)
@@ -573,4 +575,32 @@ func getMaxIntKey(m map[int][]int) int {
 	}
 	advent.Assertf(maxDigit > 0, "expected max int to be larger than 0")
 	return maxDigit
+}
+
+func pruneUseless(products []product, goal int) []product {
+	// parse product in reverse order sinde they are ordered by section
+
+	currentSection := products[len(products)-1].Section
+
+	desiredZOut := make(map[int]bool)
+	desiredZOut[goal] = true
+	newDesiredZout := make(map[int]bool)
+	pruned := []product{}
+	for i := len(products) - 1; i >= 0; i-- {
+		p := products[i]
+		if p.Section == currentSection {
+			if _, ok := desiredZOut[p.ZOut]; ok {
+				pruned = append(pruned, p)
+				newDesiredZout[p.ZIn] = true
+			}
+		} else if p.Section < currentSection {
+			currentSection = p.Section
+			desiredZOut = newDesiredZout
+			newDesiredZout = make(map[int]bool)
+			fmt.Println("prune, now section", currentSection)
+		} else {
+			panic("assumed that proudct are sorder by section")
+		}
+	}
+	return pruned
 }
