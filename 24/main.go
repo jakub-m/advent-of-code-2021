@@ -28,6 +28,7 @@ func main() {
 		advent.PanicErr(err)
 		ins, err := newInstructionsetReader(f)
 		advent.PanicErr(err)
+		//s := ins.exec([]int{3, 9, 9, 9, 9, 6, 9, 8, 7, 9, 9, 4, 2, 9}, noInspect)
 		s := ins.exec([]int{1, 8, 1, 1, 6, 1, 2, 1, 1, 3, 4, 1, 1, 7}, noInspect)
 		fmt.Println(s)
 		if s.reg[operRegZ] == 0 {
@@ -38,7 +39,7 @@ func main() {
 	var products []product
 	_ = products
 
-	if true {
+	if false {
 		//sectionLimit, goal := 6, 9921230
 		//sectionLimit, goal := 7, 209893599
 		sectionLimit, goal := 8, 159169942
@@ -55,10 +56,12 @@ func main() {
 
 	}
 
-	if false {
-		// products := loadProductsFromGob("products.gob")
-		fmt.Println(len(products))
-		fmt.Println("loaded")
+	if true {
+		products = getProductsBySection(programFileName, 0)
+		//products := loadProductsFromGob("products.gob")
+		fmt.Println("loaded", len(products))
+		products = pruneUseless(products, 0)
+		fmt.Println("pruned len(products) =", len(products))
 		path := findPathLeadingToNumber(products, 0)
 		fmt.Println(path)
 	}
@@ -538,9 +541,10 @@ func findPathLeadingToNumber(products []product, goal int) []int {
 			if len(partialPaths) == 0 {
 				return []int{}
 			} else {
-				fmt.Printf("findPath: got %d terminal partial paths: %v\n", len(partialPaths), partialPaths)
-				maxDigit := getMaxIntKey(partialPaths)
-				return partialPaths[maxDigit]
+				// fmt.Printf("findPath: got %d terminal partial paths: %v\n", len(partialPaths), partialPaths)
+				//selectedDigit := getMaxIntKey(partialPaths)
+				selectedDigit := getMinIntKey(partialPaths)
+				return partialPaths[selectedDigit]
 			}
 		} else {
 			// not the last section, DP
@@ -554,7 +558,7 @@ func findPathLeadingToNumber(products []product, goal int) []int {
 			if len(partialPaths) == 0 {
 				return []int{}
 			} else {
-				maxDigit := getMaxIntKey(partialPaths)
+				maxDigit := getMinIntKey(partialPaths)
 				return append([]int{maxDigit}, partialPaths[maxDigit]...)
 			}
 		}
@@ -575,6 +579,17 @@ func getMaxIntKey(m map[int][]int) int {
 	}
 	advent.Assertf(maxDigit > 0, "expected max int to be larger than 0")
 	return maxDigit
+}
+
+func getMinIntKey(m map[int][]int) int {
+	minDigit := 999
+	for d := range m {
+		if d < minDigit {
+			minDigit = d
+		}
+	}
+	advent.Assertf(minDigit >= 1 && minDigit <= 9, "expected max int to be larger than 0")
+	return minDigit
 }
 
 func pruneUseless(products []product, goal int) []product {
